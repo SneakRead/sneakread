@@ -822,9 +822,15 @@ function AppShell() {
       setFavicon('excel')
       return
     }
+    // The home tab title tracks the home skin (default Word), matching the
+    // filename shown in its chrome — not a hardcoded VS Code.
+    const homeName =
+      activeSkin === 'vscode'
+        ? 'Welcome'
+        : `${tr(lang, 'brand')} — Getting Started.${activeSkinMeta.extension}`
     document.title = activeDoc
       ? `${activeDoc.fileName} - ${activeSkinMeta.appName}`
-      : 'Visual Studio Code'
+      : `${homeName} - ${activeSkinMeta.appName}`
     setFavicon(activeSkin)
   }, [activeDoc, activeSkin, activeSkinMeta.appName, panic])
 
