@@ -3,7 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Microsoft Clarity — on every page, but performance-first: production host
+      // only (dev/preview/localhost untouched) and deferred to browser idle so it
+      // never blocks first paint, LCP, or interactivity.
+      ;(function () {
+        var host = location.hostname
+        if (host !== 'sneakread.com' && host !== 'www.sneakread.com') return
+        var load = function () {
+          ;(function (c, l, a, r, i, t, y) {
+            c[a] =
+              c[a] ||
+              function () {
+                ;(c[a].q = c[a].q || []).push(arguments)
+              }
+            t = l.createElement(r)
+            t.async = 1
+            t.src = 'https://www.clarity.ms/tag/' + i
+            y = l.getElementsByTagName(r)[0]
+            y.parentNode.insertBefore(t, y)
+          })(window, document, 'clarity', 'script', 'xiaapxpcej')
+        }
+        if ('requestIdleCallback' in window) requestIdleCallback(load, { timeout: 4000 })
+        else window.addEventListener('load', load)
+      })()
+    </script>
     <title>SneakRead — Read the web. Look busy.</title>
     <meta
       name="description"

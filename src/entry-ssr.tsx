@@ -50,8 +50,12 @@ export function seoHead(lang: Lang): string {
     `<meta property="og:description" content="${esc(c.metaDesc)}" />`,
     `<meta property="og:url" content="${url}" />`,
     `<meta property="og:image" content="${SITE}/og.png" />`,
+    `<meta property="og:image:width" content="1200" />`,
+    `<meta property="og:image:height" content="630" />`,
+    `<meta property="og:image:alt" content="${esc(c.metaTitle)}" />`,
     `<meta property="og:site_name" content="${esc(tr(lang, 'brand'))}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:image" content="${SITE}/og.png" />`,
     `<meta name="robots" content="index,follow" />`,
     `<script type="application/ld+json">${JSON.stringify(faq)}</script>`,
   ].join('\n    ')
