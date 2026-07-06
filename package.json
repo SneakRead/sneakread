@@ -1,0 +1,48 @@
+{
+  "name": "sneakread",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Read the web at your desk, disguised as VS Code / Word / Google Docs / Excel / Outlook.",
+  "license": "MIT",
+  "homepage": "https://sneakread.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SneakRead/sneakread.git"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && vite build --ssr src/entry-ssr.tsx --outDir dist-ssr && node scripts/prerender.mjs",
+    "build:client": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.74.3",
+    "@fluentui/react-icons": "^2.0.316",
+    "@fontsource/arimo": "^5.2.8",
+    "@fontsource/carlito": "^5.2.8",
+    "@fontsource/cascadia-code": "^5.2.3",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/roboto": "^5.2.10",
+    "@monaco-editor/react": "^4.7.0",
+    "@silevis/reactgrid": "^4.1.17",
+    "@vscode/codicons": "^0.0.45",
+    "lucide-react": "^1.23.0",
+    "material-symbols": "^0.45.5",
+    "monaco-editor": "^0.55.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^6.0.3",
+    "oxlint": "^1.71.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1"
+  }
+}

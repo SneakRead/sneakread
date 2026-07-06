@@ -1,0 +1,58 @@
+:root {
+  /* Windows machines get the real Segoe; everyone else gets bundled Inter. */
+  --sans:
+    "Segoe UI Variable", "Segoe UI", Inter, ui-sans-serif, system-ui, -apple-system,
+    sans-serif;
+  --mono:
+    "Cascadia Code", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono",
+    Menlo, monospace;
+  /* Per-app font stacks (real font first for Windows/Office, bundled clone next) */
+  --xl-body: Calibri, Carlito, Inter, sans-serif;
+  --word-body: "Aptos", Inter, Carlito, sans-serif;
+  --gd-ui: "Google Sans", Roboto, Arial, Arimo, sans-serif;
+  --gd-body: Arial, Arimo, sans-serif;
+
+  /* Fluent 2 neutrals + brand accents (Word/Excel/Outlook) */
+  --fluent-stroke: #e0e0e0;
+  --fluent-stroke-2: #d1d1d1;
+  --fluent-text: #242424;
+  --fluent-text-2: #616161;
+  --fluent-fill-subtle: #f5f5f5;
+  --fluent-bg-subtle: #fafafa;
+  --word-accent: #2b579a;
+  --word-file: #1e3f72;
+  --xl-accent: #107c41;
+  --xl-accent-dark: #185c37;
+  --ol-accent: #0f6cbd;
+  --ol-accent-hover: #115ea3;
+  /* Material 3 (Google Docs) */
+  --gd-accent: #1a73e8;
+  --gd-pill: #edf2fa;
+  --gd-icon: #444746;
+
+  font-family: var(--sans);
+  color: #1f2937;
+  background: #d9dde5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+#root {
+  min-height: 100svh;
+}
