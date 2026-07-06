@@ -46,7 +46,7 @@ export type Skin = {
 // skin modules in src/skins/index.ts — a new skin needs only its SkinId union
 // entry above plus its own folder. Nothing to add here.
 
-export const storageKey = 'moyu-docx-documents-v3'
-export const onboardKey = 'moyu-docx-onboarded-v1'
-export const coachKey = 'moyu-docx-filecoach-v1'
+export const storageKey = 'sneakread-documents-v1'
+export const onboardKey = 'sneakread-onboarded-v1'
+export const coachKey = 'sneakread-filecoach-v1'
 export const panicDocumentId = 'panic-budget-review'

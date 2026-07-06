@@ -454,9 +454,9 @@ function dedupeStoredDocuments(docs: DocumentRecord[]) {
 
 type ProviderId = 'jinacn' | 'jina' | 'firecrawl'
 
-const readerSourceKey = 'moyu-reader-source'
-const readerCooldownKey = 'moyu-reader-cd'
-const readerGoodKey = 'moyu-reader-good'
+const readerSourceKey = 'sneakread-reader-source'
+const readerCooldownKey = 'sneakread-reader-cd'
+const readerGoodKey = 'sneakread-reader-good'
 
 const jinaHeaders: Record<string, string> = {
   'X-No-Cache': 'true',

@@ -2,7 +2,7 @@
 
 **在工位上读整个互联网，伪装成你本来就开着的那个软件。**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) · [sneakread.com](https://sneakread.com) · 纯前端、无后端、不追踪 · [English](README.md)
+[![GitHub Repo stars](https://img.shields.io/github/stars/SneakRead/sneakread?style=flat&logo=github)](https://github.com/SneakRead/sneakread) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) · [sneakread.com](https://sneakread.com) · 纯前端、无后端、不追踪 · [English](README.md)
 
 粘贴任意公开网址，SneakRead 通过阅读器把它抓成正文，然后**全屏渲染成一个真实的桌面软件** —— VS Code、Word、Google Docs、Excel 或 Outlook —— 让「看网页」看起来像「在工作」。品牌：全球叫 **SneakRead**，中文叫 **摸鱼**。
 

@@ -7,7 +7,7 @@ export type Lang = 'en' | 'zh' | 'es' | 'hi' | 'ar' | 'pt' | 'ru' | 'ja' | 'fr' 
 const LANGS: Lang[] = ['en', 'zh', 'es', 'hi', 'ar', 'pt', 'ru', 'ja', 'fr', 'de']
 const RTL_LANGS: Lang[] = ['ar']
 
-export const langKey = 'moyu-docx-lang'
+export const langKey = 'sneakread-lang'
 
 export function detectLang(): Lang {
   // A user's explicit choice (from the File ▸ Language menu) wins over the browser.
