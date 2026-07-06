@@ -42,15 +42,9 @@ export type Skin = {
   extension: string
 }
 
-export const skins: Skin[] = [
-  { id: 'vscode', label: 'VS Code', appName: 'Visual Studio Code', extension: 'md' },
-  { id: 'word', label: 'Word', appName: 'Word', extension: 'docx' },
-  { id: 'docs', label: 'Google Docs', appName: 'Google Docs', extension: 'gdoc' },
-  { id: 'excel', label: 'Excel', appName: 'Excel', extension: 'xlsx' },
-  { id: 'outlook', label: 'Outlook', appName: 'Outlook', extension: 'msg' },
-]
-
-export const skinById = (id: SkinId) => skins.find((skin) => skin.id === id) ?? skins[0]
+// NOTE: the `skins` metadata array + `skinById` are DERIVED from the registered
+// skin modules in src/skins/index.ts — a new skin needs only its SkinId union
+// entry above plus its own folder. Nothing to add here.
 
 export const storageKey = 'moyu-docx-documents-v3'
 export const onboardKey = 'moyu-docx-onboarded-v1'

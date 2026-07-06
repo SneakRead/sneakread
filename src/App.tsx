@@ -40,8 +40,6 @@ import type {
   DocumentRecord,
 } from './core/types'
 import {
-  skins,
-  skinById,
   storageKey,
   onboardKey,
   coachKey,
@@ -59,7 +57,7 @@ import {
 } from './skins/shared'
 import { ExcelBudgetSkin } from './skins/excel'
 import { VscMenuBar, ActivityBar } from './skins/vscode'
-import { getSkin } from './skins'
+import { getSkin, skins, skinById } from './skins'
 
 /* ------------------------------------------------------------------ *
  * URL / reader plumbing
