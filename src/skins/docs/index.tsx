@@ -136,7 +136,7 @@ export function DocsSkin({ doc }: { doc: DocumentRecord }) {
       <div className="paper-canvas gdocs-canvas">
         <article className="paper gdocs-page markdown-body">
           <h1>{doc.title}</h1>
-          <MarkdownContent markdown={body} />
+          <MarkdownContent markdown={body} baseUrl={doc.sourceUrl} />
         </article>
       </div>
     </div>

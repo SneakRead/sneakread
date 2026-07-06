@@ -349,13 +349,13 @@ export function VscodeSkin({ doc }: { doc: DocumentRecord }) {
           </div>
           <div className={view === 'code' ? 'vsc-editor-scroll is-monaco' : 'vsc-editor-scroll'}>
             {view === 'code' ? (
-              <MonacoBoundary fallback={<CodeEditor text={eggBody ?? body} />}>
+              <MonacoBoundary fallback={<CodeEditor text={eggBody ?? body} baseUrl={openEgg ? undefined : doc.sourceUrl} />}>
                 <MonacoCode text={eggBody ?? body} />
               </MonacoBoundary>
             ) : (
               <div className="vsc-render markdown-body">
                 {!openEgg && <h1>{doc.title}</h1>}
-                <MarkdownContent markdown={eggBody ?? body} />
+                <MarkdownContent markdown={eggBody ?? body} baseUrl={openEgg ? undefined : doc.sourceUrl} />
               </div>
             )}
           </div>

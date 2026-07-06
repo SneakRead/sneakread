@@ -52,6 +52,7 @@ import {
   extractLinks,
   extractImages,
   inferProjectName,
+  safeHttpUrl,
 } from './core/content'
 import {
   WordFrame,
@@ -73,6 +74,32 @@ function normalizeUrl(input: string) {
     throw new Error('Only http and https URLs are supported')
   }
   return url.toString()
+}
+
+function safeStorageGet(key: string) {
+  try {
+    return typeof localStorage === 'undefined' ? null : localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function safeStorageSet(key: string, value: string) {
+  try {
+    if (typeof localStorage === 'undefined') return false
+    localStorage.setItem(key, value)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function safeStorageRemove(key: string) {
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.removeItem(key)
+  } catch {
+    // ignore storage failures
+  }
 }
 
 function looksLikeUrl(input: string) {
@@ -100,7 +127,7 @@ function stripFrontmatter(text: string) {
 function parseReaderResponse(raw: string, fallbackUrl: string): ReaderDoc {
   const frontmatter = stripFrontmatter(raw)
   let title = frontmatter.metadata.title || ''
-  let sourceUrl = frontmatter.metadata.url || fallbackUrl
+  let sourceUrl = safeHttpUrl(frontmatter.metadata.url, fallbackUrl) ?? fallbackUrl
   let markdown = cleanReaderMarkdown(frontmatter.body)
 
   if (!Object.keys(frontmatter.metadata).length) {
@@ -108,7 +135,7 @@ function parseReaderResponse(raw: string, fallbackUrl: string): ReaderDoc {
     const sourceMatch = raw.match(/^URL Source:\s*(.+)$/m)
     const contentIndex = raw.indexOf('Markdown Content:')
     title = titleMatch?.[1]?.trim() || ''
-    sourceUrl = sourceMatch?.[1]?.trim() || fallbackUrl
+    sourceUrl = safeHttpUrl(sourceMatch?.[1], fallbackUrl) ?? fallbackUrl
     markdown = cleanReaderMarkdown(
       contentIndex >= 0
         ? raw.slice(contentIndex + 'Markdown Content:'.length).trim()
@@ -124,7 +151,7 @@ function parseReaderResponse(raw: string, fallbackUrl: string): ReaderDoc {
     markdown,
     fetchedAt: formatTime(new Date()),
     raw,
-    summary: summarizeMarkdown(markdown),
+    summary: summarizeMarkdown(markdown, sourceUrl),
   }
 }
 
@@ -138,7 +165,10 @@ function cleanReaderMarkdown(markdown: string) {
   const lines = stripLeadingLayoutTable(
     unwrapped
       .split('\n')
-      .filter((line) => !isReaderBoilerplateLine(line) && !isSpacerTableRow(line)),
+      .filter(
+        (line, index, allLines) =>
+          !isReaderBoilerplateLine(line, allLines[index + 1]) && !isSpacerTableRow(line),
+      ),
   )
   return unwrapProseCell(trimLeadingNav(lines)).join('\n').replace(/\n{4,}/g, '\n\n\n').trim()
 }
@@ -225,9 +255,23 @@ function trimLeadingNav(lines: string[]) {
   return navCount >= 5 ? lines.slice(firstProse) : lines
 }
 
-function isReaderBoilerplateLine(line: string) {
-  const clean = line.trim().replace(/^[•·☑✓\-*]\s*/, '').trim()
+function readerBoilerplateCandidate(line = '') {
+  return line
+    .trim()
+    .replace(/\\+\s*$/, '')
+    .replace(/^#{1,6}\s*/, '')
+    .replace(/^[•·☑✓\-*]\s*/, '')
+    .trim()
+}
+
+function isReaderBoilerplateLine(line: string, nextLine = '') {
+  const clean = readerBoilerplateCandidate(line)
   if (!clean) return false
+  const nextClean = readerBoilerplateCandidate(nextLine)
+  const blockedWidgetDomain =
+    /^([a-z0-9-]+\.)+[a-z]{2,}$/i.test(clean) &&
+    /^(is blocked|ERR_[A-Z_]+|blocked by an? (extension|ad ?blocker))/i.test(nextClean)
+  if (blockedWidgetDomain) return true
   return [
     /^\[?(Skip|Jump) to (main content|content|navigation|search)\]?/i,
     /^\[Keyboard shortcuts?( for .*)?\]\([^)]+\)$/i,
@@ -246,6 +290,7 @@ function isReaderBoilerplateLine(line: string) {
     /^Share$/i,
     // Blocked third-party widgets (ad-blocker / extension) leaking into scrapes.
     /^[a-z0-9.-]+\.[a-z]{2,}\s+is blocked$/i,
+    /^is blocked$/i,
     /blocked by an? (extension|ad ?blocker)/i,
     /^ERR_[A-Z_]+$/,
     /^Try disabling your (extensions?|ad ?blocker)/i,
@@ -315,7 +360,7 @@ function inferTitle(markdown: string, url: string) {
   }
 }
 
-function summarizeMarkdown(markdown: string): Summary {
+function summarizeMarkdown(markdown: string, baseUrl?: string): Summary {
   const plain = markdown
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/!\[[^\]]*]\([^)]+\)/g, ' ')
@@ -324,8 +369,8 @@ function summarizeMarkdown(markdown: string): Summary {
   return {
     words: plain.trim() ? plain.trim().split(/\s+/).length : 0,
     headings: (markdown.match(/^#{1,6}\s+/gm) || []).length,
-    links: extractLinks(markdown).length,
-    images: extractImages(markdown).length,
+    links: extractLinks(markdown, baseUrl).length,
+    images: extractImages(markdown, baseUrl).length,
     tables: (markdown.match(/^\|.+\|$/gm) || []).length,
   }
 }
@@ -341,20 +386,30 @@ function formatTime(date: Date) {
   })
 }
 
+function shortHash(value: string) {
+  let h1 = 0xdeadbeef ^ value.length
+  let h2 = 0x41c6ce57 ^ value.length
+  for (let i = 0; i < value.length; i++) {
+    const ch = value.charCodeAt(i)
+    h1 = Math.imul(h1 ^ ch, 2654435761)
+    h2 = Math.imul(h2 ^ ch, 1597334677)
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
+  return `${(h2 >>> 0).toString(36)}${(h1 >>> 0).toString(36)}`
+}
+
 function createId(url: string) {
-  return `doc-${btoa(unescape(encodeURIComponent(url)))
-    .replace(/=+$/g, '')
-    .replace(/[+/]/g, '-')
-    .slice(0, 42)}`
+  return `doc-${shortHash(url)}`
 }
 
 function loadStoredDocuments(): DocumentRecord[] {
   try {
-    const value = localStorage.getItem(storageKey)
+    const value = safeStorageGet(storageKey)
     if (!value) return []
     const parsed = JSON.parse(value)
     if (!Array.isArray(parsed)) return []
-    return parsed.filter(isStoredDocument).map(hydrateDocument)
+    return dedupeStoredDocuments(parsed.filter(isStoredDocument).map(hydrateDocument))
   } catch {
     return []
   }
@@ -363,19 +418,33 @@ function loadStoredDocuments(): DocumentRecord[] {
 function isStoredDocument(value: unknown): value is DocumentRecord {
   if (!value || typeof value !== 'object') return false
   const doc = value as Partial<DocumentRecord>
-  return Boolean(doc.id && doc.sourceUrl && doc.markdown && doc.fileName)
+  return Boolean(doc.sourceUrl && safeHttpUrl(doc.sourceUrl) && doc.markdown && doc.fileName)
 }
 
 function hydrateDocument(doc: DocumentRecord): DocumentRecord {
+  const sourceUrl = safeHttpUrl(doc.sourceUrl) ?? doc.sourceUrl
+  const skin = skins.some((skin) => skin.id === doc.skin) ? doc.skin : DEFAULT_SKIN_ID
   return {
     ...doc,
-    skin: skins.some((skin) => skin.id === doc.skin) ? doc.skin : DEFAULT_SKIN_ID,
-    pageKind: doc.pageKind || inferPageKind(doc.sourceUrl, doc.markdown, doc.title),
-    projectName: doc.projectName || inferProjectName(doc.sourceUrl),
+    id: createId(sourceUrl),
+    sourceUrl,
+    skin,
+    fileName: doc.fileName || makeFileName(doc.title, skin),
+    pageKind: doc.pageKind || inferPageKind(sourceUrl, doc.markdown, doc.title),
+    projectName: doc.projectName || inferProjectName(sourceUrl),
     sizeBytes: doc.sizeBytes || new Blob([doc.raw || doc.markdown]).size,
     openCount: doc.openCount || 1,
     lastSyncedAt: doc.lastSyncedAt || doc.lastOpenedAt || doc.fetchedAt,
   }
+}
+
+function dedupeStoredDocuments(docs: DocumentRecord[]) {
+  const seen = new Set<string>()
+  return docs.filter((doc) => {
+    if (seen.has(doc.sourceUrl)) return false
+    seen.add(doc.sourceUrl)
+    return true
+  })
 }
 
 /* ------------------------------------------------------------------ *
@@ -422,13 +491,14 @@ async function readViaFirecrawl(url: string, signal: AbortSignal): Promise<Reade
   }
   if (!json.success || !json.data?.markdown) throw new Error('Firecrawl returned no content')
   const markdown = cleanReaderMarkdown(json.data.markdown)
+  const sourceUrl = safeHttpUrl(json.data.metadata?.sourceURL, url) ?? url
   const parsed: ReaderDoc = {
-    title: json.data.metadata?.title || inferTitle(markdown, url),
-    sourceUrl: json.data.metadata?.sourceURL || url,
+    title: json.data.metadata?.title || inferTitle(markdown, sourceUrl),
+    sourceUrl,
     markdown,
     fetchedAt: formatTime(new Date()),
     raw: json.data.markdown,
-    summary: summarizeMarkdown(markdown),
+    summary: summarizeMarkdown(markdown, sourceUrl),
   }
   assertHealthyReaderDoc(parsed)
   return parsed
@@ -460,7 +530,7 @@ function cnLeaning(): boolean {
 
 function readReaderCooldowns(): Record<string, number> {
   try {
-    return JSON.parse(localStorage.getItem(readerCooldownKey) || '{}')
+    return JSON.parse(safeStorageGet(readerCooldownKey) || '{}')
   } catch {
     return {}
   }
@@ -474,7 +544,7 @@ function getProviderOrder(override: string): ProviderId[] {
   if (override && override !== 'auto' && override in providers) {
     order = [override as ProviderId, ...base.filter((id) => id !== override)]
   } else {
-    const good = localStorage.getItem(readerGoodKey)
+    const good = safeStorageGet(readerGoodKey)
     if (good && good in providers) {
       order = [good as ProviderId, ...base.filter((id) => id !== good)]
     }
@@ -488,10 +558,10 @@ function getProviderOrder(override: string): ProviderId[] {
 
 function rememberReaderGood(id: ProviderId) {
   try {
-    localStorage.setItem(readerGoodKey, id)
+    safeStorageSet(readerGoodKey, id)
     const cd = readReaderCooldowns()
     delete cd[id]
-    localStorage.setItem(readerCooldownKey, JSON.stringify(cd))
+    safeStorageSet(readerCooldownKey, JSON.stringify(cd))
   } catch {
     // ignore
   }
@@ -501,7 +571,7 @@ function rememberReaderFail(id: ProviderId) {
   try {
     const cd = readReaderCooldowns()
     cd[id] = Date.now() + 8 * 60 * 1000
-    localStorage.setItem(readerCooldownKey, JSON.stringify(cd))
+    safeStorageSet(readerCooldownKey, JSON.stringify(cd))
   } catch {
     // ignore
   }
@@ -552,8 +622,8 @@ function loadErrorMessage(loadError: unknown) {
  * now live in ./core/content */
 
 function inferPageKind(url: string, markdown: string, title = ''): PageKind {
-  const summary = summarizeMarkdown(markdown)
-  const links = extractLinks(markdown).length
+  const summary = summarizeMarkdown(markdown, url)
+  const links = extractLinks(markdown, url).length
   const titleIsHost = title === getSiteLabel(url)
   try {
     const parsed = new URL(url)
@@ -708,18 +778,14 @@ function AppShell() {
   const [error, setError] = useState('')
   const [loadingUrl, setLoadingUrl] = useState('')
   const [onboarded, setOnboarded] = useState(
-    () => localStorage.getItem(onboardKey) === '1',
+    () => safeStorageGet(onboardKey) === '1',
   )
   const [coachOff, setCoachOff] = useState(
-    () => localStorage.getItem(coachKey) === '1',
+    () => safeStorageGet(coachKey) === '1',
   )
   const dismissCoach = () => {
     setCoachOff(true)
-    try {
-      localStorage.setItem(coachKey, '1')
-    } catch {
-      // ignore storage failures
-    }
+    safeStorageSet(coachKey, '1')
   }
   // The home now has its own prominent URL box, so don't auto-open the palette
   // over it — ⌘K still opens it on demand.
@@ -743,7 +809,12 @@ function AppShell() {
 
   // Persist library
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(records.slice(0, 30)))
+    const counts = [30, 15, 8, 3, 1]
+    for (const count of counts) {
+      if (safeStorageSet(storageKey, JSON.stringify(records.slice(0, count)))) {
+        return
+      }
+    }
   }, [records])
 
   // Title bar + favicon reflect the disguise, never "Moyu"
@@ -815,7 +886,7 @@ function AppShell() {
     abortRef.current = controller
     manualCancelRef.current = false
     try {
-      const override = localStorage.getItem(readerSourceKey) || 'auto'
+      const override = safeStorageGet(readerSourceKey) || 'auto'
       const parsed = await readWithFallback(targetUrl, controller.signal, override)
       const pageKind = inferPageKind(targetUrl, parsed.markdown, parsed.title)
       // Open in the default skin (Word). The disguise never auto-switches; only
@@ -868,16 +939,21 @@ function AppShell() {
       setMenuAnchor((current) => (current ? null : { x: rect.left, y: rect.bottom }))
       return
     }
-    const anchor = target.closest?.('a[href]')
+    const anchor = target.closest?.('a[href]') as HTMLAnchorElement | null
     if (!anchor) return
+    if (!activeDoc || anchor.target === '_blank' || anchor.hasAttribute('download')) return
     const href = anchor.getAttribute('href') || ''
-    if (!/^https?:\/\//i.test(href)) return
-    event.preventDefault()
-    if (event.metaKey || event.ctrlKey) {
-      window.open(href, '_blank', 'noreferrer')
+    const safeHref = safeHttpUrl(href, activeDoc?.sourceUrl)
+    if (!safeHref) {
+      event.preventDefault()
       return
     }
-    openUrl(href, panic ? undefined : activeDoc?.skin)
+    event.preventDefault()
+    if (event.metaKey || event.ctrlKey) {
+      window.open(safeHref, '_blank', 'noopener,noreferrer')
+      return
+    }
+    openUrl(safeHref, panic ? undefined : activeDoc?.skin)
   }
 
   const goHome = () => {
@@ -887,12 +963,12 @@ function AppShell() {
 
   const setLanguage = (code: Lang) => {
     if (code === lang) return
-    localStorage.setItem(langKey, code)
+    safeStorageSet(langKey, code)
     window.location.reload()
   }
 
   const finishOnboarding = (openPalette: boolean) => {
-    localStorage.setItem(onboardKey, '1')
+    safeStorageSet(onboardKey, '1')
     setOnboarded(true)
     if (openPalette) setPaletteOpen(true)
   }
@@ -1053,7 +1129,7 @@ function AppShell() {
         keywords: 'browser external original source',
         enabled: Boolean(activeDoc),
         run: () =>
-          activeDoc && window.open(activeDoc.sourceUrl, '_blank', 'noreferrer'),
+          activeDoc && window.open(activeDoc.sourceUrl, '_blank', 'noopener,noreferrer'),
       },
       {
         id: 'fullscreen',
@@ -1144,22 +1220,18 @@ function AppShell() {
             setSkin: changeSkin,
             setLang: setLanguage,
             setReaderSource: (source) => {
-              try {
-                if (source === 'auto') localStorage.removeItem(readerSourceKey)
-                else localStorage.setItem(readerSourceKey, source)
-                // A changed source only matters for the next fetch; clear
-                // cooldowns so the forced provider is actually tried.
-                localStorage.removeItem(readerCooldownKey)
-              } catch {
-                // ignore storage failures
-              }
+              if (source === 'auto') safeStorageRemove(readerSourceKey)
+              else safeStorageSet(readerSourceKey, source)
+              // A changed source only matters for the next fetch; clear
+              // cooldowns so the forced provider is actually tried.
+              safeStorageRemove(readerCooldownKey)
               if (!panic && activeDoc) openUrl(activeDoc.sourceUrl, activeDoc.skin, true)
             },
             refresh: refreshActive,
             share: copyShareLink,
             copy: copySource,
             original: () =>
-              activeDoc && window.open(activeDoc.sourceUrl, '_blank', 'noreferrer'),
+              activeDoc && window.open(activeDoc.sourceUrl, '_blank', 'noopener,noreferrer'),
             fullscreen: enterFullscreen,
             toggleBoss: () => setBossMode((value) => !value),
             panic: togglePanic,
@@ -1269,11 +1341,7 @@ function AppMenu({
   const [langOpen, setLangOpen] = useState(false)
   const [readerOpen, setReaderOpen] = useState(false)
   const [readerPref, setReaderPref] = useState(() => {
-    try {
-      return localStorage.getItem(readerSourceKey) || 'auto'
-    } catch {
-      return 'auto'
-    }
+    return safeStorageGet(readerSourceKey) || 'auto'
   })
   const run = (fn: () => void) => () => {
     fn()
@@ -1779,7 +1847,7 @@ function HomeContent({
       </div>
 
       <footer className="welcome-footer">
-        <a href="https://github.com/SneakRead/sneakread" target="_blank" rel="noreferrer">
+        <a href="https://github.com/SneakRead/sneakread" target="_blank" rel="noopener noreferrer">
           ★ {tr(lang, 'openSource')}
         </a>
         <span aria-hidden="true">·</span>
@@ -1787,7 +1855,7 @@ function HomeContent({
           {tr(lang, 'builtBy')} 刘小排 (Liu Xiaopai)
         </span>
         <span aria-hidden="true">·</span>
-        <a href="https://raphael.app" target="_blank" rel="noreferrer">
+        <a href="https://raphael.app" target="_blank" rel="noopener noreferrer">
           Raphael AI
         </a>
       </footer>

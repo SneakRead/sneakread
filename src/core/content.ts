@@ -11,6 +11,17 @@ export function getSiteLabel(url: string) {
   }
 }
 
+export function safeHttpUrl(value: string | null | undefined, baseUrl?: string) {
+  const raw = value?.trim()
+  if (!raw) return null
+  try {
+    const url = baseUrl ? new URL(raw, baseUrl) : new URL(raw)
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : null
+  } catch {
+    return null
+  }
+}
+
 export function extractHeadings(markdown: string) {
   const headings = Array.from(markdown.matchAll(/^#{1,4}\s+(.+)$/gm)).map((match) =>
     match[1].replace(/\s+#+$/, '').trim(),
@@ -18,20 +29,31 @@ export function extractHeadings(markdown: string) {
   return headings.length ? headings : ['Overview', 'Details', 'Links']
 }
 
-export function extractLinks(markdown: string) {
+export function extractLinks(markdown: string, baseUrl?: string) {
   return Array.from(markdown.matchAll(/(?<!!)\[([^\]]+)]\(([^)]+)\)/g))
-    .map((match) => ({
-      text: match[1].replace(/\s+/g, ' ').trim(),
-      href: match[2].trim(),
-    }))
+    .map((match) => {
+      const href = safeHttpUrl(match[2].trim(), baseUrl)
+      if (!href) return null
+      return {
+        text: match[1].replace(/\s+/g, ' ').trim(),
+        href,
+      }
+    })
+    .filter((link): link is { text: string; href: string } => Boolean(link))
     .filter((link) => !link.text.startsWith('!['))
 }
 
-export function extractImages(markdown: string) {
-  return Array.from(markdown.matchAll(/!\[([^\]]*)]\(([^)]+)\)/g)).map((match) => ({
-    alt: match[1].replace(/\s+/g, ' ').trim(),
-    src: match[2].trim(),
-  }))
+export function extractImages(markdown: string, baseUrl?: string) {
+  return Array.from(markdown.matchAll(/!\[([^\]]*)]\(([^)]+)\)/g))
+    .map((match) => {
+      const src = safeHttpUrl(match[2].trim(), baseUrl)
+      if (!src) return null
+      return {
+        alt: match[1].replace(/\s+/g, ' ').trim(),
+        src,
+      }
+    })
+    .filter((image): image is { alt: string; src: string } => Boolean(image))
 }
 
 export function extractParagraphs(markdown: string) {
@@ -68,7 +90,7 @@ export function articleBody(doc: DocumentRecord) {
 
 export function emailBody(doc: DocumentRecord) {
   const paragraphs = extractParagraphs(doc.markdown)
-  const links = extractLinks(doc.markdown)
+  const links = extractLinks(doc.markdown, doc.sourceUrl)
   return [
     'Hi team,',
     '',

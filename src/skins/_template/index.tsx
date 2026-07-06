@@ -21,7 +21,7 @@ function Surface({ doc }: { doc: DocumentRecord }) {
       <article className="template-skin-body markdown-body">
         <h1>{doc.title}</h1>
         {/* Reuse shared MarkdownContent, or render `doc` however your app would. */}
-        <MarkdownContent markdown={articleBody(doc)} />
+        <MarkdownContent markdown={articleBody(doc)} baseUrl={doc.sourceUrl} />
       </article>
     </div>
   )

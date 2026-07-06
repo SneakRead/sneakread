@@ -10,7 +10,7 @@ export function WordSkin({ doc }: { doc: DocumentRecord }) {
     <WordFrame fileName={doc.fileName} statusWords={doc.summary.words}>
       <article className="paper markdown-body">
         <h1>{doc.title}</h1>
-        <MarkdownContent markdown={body} />
+        <MarkdownContent markdown={body} baseUrl={doc.sourceUrl} />
       </article>
     </WordFrame>
   )

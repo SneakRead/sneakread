@@ -11,8 +11,12 @@ export const langKey = 'moyu-docx-lang'
 
 export function detectLang(): Lang {
   // A user's explicit choice (from the File ▸ Language menu) wins over the browser.
-  const saved =
-    typeof localStorage !== 'undefined' ? localStorage.getItem(langKey) : null
+  let saved: string | null = null
+  try {
+    saved = typeof localStorage !== 'undefined' ? localStorage.getItem(langKey) : null
+  } catch {
+    saved = null
+  }
   if (saved && LANGS.includes(saved as Lang)) return saved as Lang
   const raw =
     (typeof navigator !== 'undefined' &&

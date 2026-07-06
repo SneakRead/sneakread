@@ -233,7 +233,7 @@ export function OutlookSkin({ doc }: { doc: DocumentRecord }) {
               <Paperclip size={13} aria-hidden="true" /> source.md ({formatBytes(doc.sizeBytes)})
             </div>
           </div>
-          <MarkdownContent markdown={body} />
+          <MarkdownContent markdown={body} baseUrl={doc.sourceUrl} />
         </article>
       </div>
     </div>

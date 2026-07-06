@@ -7,6 +7,7 @@ import {
   extractHeadings,
   extractLinks,
   extractImages,
+  safeHttpUrl,
 } from '../../core/content'
 import { MsTitleBar, MsRibbonTabs, MsRibbonRight, MarkdownContent } from '../shared'
 import { ExcelLogo } from '../../logos'
@@ -36,7 +37,6 @@ import {
 
 // ===== BLOCK APPENDED BELOW =====
 type XlCell = { text: string; href?: string }
-const isHttpUrl = (s: string) => /^https?:\/\//i.test(s.trim())
 const colLetter = (i: number) =>
   i < 26
     ? String.fromCharCode(65 + i)
@@ -60,7 +60,7 @@ function markdownTableToSheet(markdown: string): XlCell[][] | null {
   const header = parseRow(table[0])
   if (header.length < 2) return null
   const toCells = (arr: string[]): XlCell[] =>
-    arr.map((tx) => ({ text: tx, href: isHttpUrl(tx) ? tx : undefined }))
+    arr.map((tx) => ({ text: tx, href: safeHttpUrl(tx) ?? undefined }))
   return [header.map((tx) => ({ text: tx })), ...table.slice(2).map(parseRow).map(toCells)]
 }
 
@@ -81,8 +81,8 @@ function auditSheet(doc: DocumentRecord): XlCell[][] {
 // Sheet tabs are real: Summary/Raw/Links/Images each render a different grid,
 // and the Links/Images sheets have clickable URL cells for continuous browsing.
 function buildSheets(doc: DocumentRecord): { name: string; rows: XlCell[][] }[] {
-  const links = extractLinks(doc.markdown)
-  const images = extractImages(doc.markdown)
+  const links = extractLinks(doc.markdown, doc.sourceUrl)
+  const images = extractImages(doc.markdown, doc.sourceUrl)
   const summary = markdownTableToSheet(doc.markdown) ?? auditSheet(doc)
   const linkRows: XlCell[][] = [
     [{ text: '#' }, { text: 'Link text' }, { text: 'URL' }],
@@ -139,7 +139,7 @@ function XlSheet({ rows }: { rows: XlCell[][] }) {
               return (
                 <td key={ci} className={r === 0 ? 'xl-cell xl-head' : 'xl-cell'}>
                   {cell?.href ? (
-                    <a href={cell.href} rel="noreferrer">
+                    <a href={cell.href} rel="noopener noreferrer">
                       {cell.text}
                     </a>
                   ) : (
@@ -798,7 +798,7 @@ export function ExcelSkin({ doc }: { doc: DocumentRecord }) {
           <div className="excel-read-head">
             <ExcelLogo size={16} /> {site}
           </div>
-          <MarkdownContent markdown={articleBody(doc)} />
+          <MarkdownContent markdown={articleBody(doc)} baseUrl={doc.sourceUrl} />
         </aside>
       </div>
       <div className="excel-sheet-tabs">

@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { WordLogo, ExcelLogo } from '../../logos'
+import { safeHttpUrl } from '../../core/content'
 import {
   Save20Regular,
   ArrowUndo20Regular,
@@ -49,17 +50,25 @@ export function Codicon({ name, size }: { name: string; size?: number }) {
   )
 }
 
-export function MarkdownContent({ markdown }: { markdown: string }) {
+export function MarkdownContent({ markdown, baseUrl }: { markdown: string; baseUrl?: string }) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        a: ({ children, href }) => (
-          <a href={href} rel="noreferrer">
-            {children}
-          </a>
-        ),
-        img: ({ alt, src }) => <img alt={alt || ''} loading="lazy" src={src || ''} />,
+        a: ({ children, href }) => {
+          const safeHref = safeHttpUrl(href, baseUrl)
+          return safeHref ? (
+            <a href={safeHref} rel="noopener noreferrer">
+              {children}
+            </a>
+          ) : (
+            <span>{children}</span>
+          )
+        },
+        img: ({ alt, src }) => {
+          const safeSrc = safeHttpUrl(src, baseUrl)
+          return safeSrc ? <img alt={alt || ''} loading="lazy" src={safeSrc} /> : null
+        },
       }}
     >
       {markdown}
@@ -79,7 +88,16 @@ export function escapeHtml(value: string) {
     .replace(/'/g, '&#39;')
 }
 
-export function highlightMarkdownLine(line: string) {
+function unescapeHtml(value: string) {
+  return value
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+}
+
+export function highlightMarkdownLine(line: string, baseUrl?: string) {
   if (line.trim() === '') return ' '
   const escaped = escapeHtml(line)
   if (/^\s*#{1,6}\s/.test(line)) return `<span class="tok-heading">${escaped}</span>`
@@ -91,8 +109,11 @@ export function highlightMarkdownLine(line: string) {
   // The (?<!!) skips image syntax ![alt](url) so image alts aren't linked.
   html = html.replace(
     /(?<!!)\[([^\]]+)\]\(([^)]+)\)/g,
-    (_match, text: string, url: string) =>
-      `<a href="${url}" rel="noreferrer" class="tok-link">[${text}]</a><span class="tok-link-url">(${url})</span>`,
+    (_match, text: string, url: string) => {
+      const safeHref = safeHttpUrl(unescapeHtml(url), baseUrl)
+      if (!safeHref) return `[${text}]<span class="tok-link-url">(${url})</span>`
+      return `<a href="${escapeHtml(safeHref)}" rel="noopener noreferrer" class="tok-link">[${text}]</a><span class="tok-link-url">(${url})</span>`
+    },
   )
   html = html.replace(/\*\*([^*]+)\*\*/g, '<span class="tok-strong">**$1**</span>')
   html = html.replace(/`([^`]+)`/g, '<span class="tok-code">`$1`</span>')
@@ -100,7 +121,7 @@ export function highlightMarkdownLine(line: string) {
   return html
 }
 
-export function CodeEditor({ text }: { text: string }) {
+export function CodeEditor({ text, baseUrl }: { text: string; baseUrl?: string }) {
   const lines = useMemo(() => text.split('\n'), [text])
   return (
     <div className="code-editor">
@@ -111,7 +132,7 @@ export function CodeEditor({ text }: { text: string }) {
       </div>
       <pre className="code-lines">
         {lines.map((line, i) => (
-          <code key={i} dangerouslySetInnerHTML={{ __html: highlightMarkdownLine(line) }} />
+          <code key={i} dangerouslySetInnerHTML={{ __html: highlightMarkdownLine(line, baseUrl) }} />
         ))}
       </pre>
     </div>
@@ -361,4 +382,3 @@ export function WordFrame({
     </div>
   )
 }
-

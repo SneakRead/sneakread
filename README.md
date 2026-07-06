@@ -42,7 +42,8 @@ yet **themselves disguised** as a VS Code README (with a live Version switcher):
 | Excel | ribbon, formula bar, real grid, sheet tabs | data table if present, else audit sheet |
 | Outlook | folders, message list, reading pane | article as an email |
 
-The skin is inferred from the URL/content and can be switched anytime from the palette.
+New pages open as Word by default, and you can switch the disguise anytime from
+the File menu or command palette.
 
 ## Stack
 
