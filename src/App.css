@@ -1669,14 +1669,17 @@ kbd {
   font-size: 13px;
 }
 
-.ms-ribbon-tabs span {
+/* Direct children only — the tabs. The Comments/Share cluster lives in a nested
+   .ms-tabs-right and keeps its own styling (otherwise white text landed on the
+   white Share pill and it looked blank). */
+.ms-ribbon-tabs > span {
   padding: 7px 11px 8px;
   color: rgba(255, 255, 255, 0.92);
   border-radius: 4px 4px 0 0;
   cursor: default;
 }
 
-.ms-ribbon-tabs span:not(.is-active):not(.ms-file-tab):hover {
+.ms-ribbon-tabs > span:not(.is-active):not(.ms-file-tab):hover {
   background: rgba(255, 255, 255, 0.14);
 }
 
