@@ -22,11 +22,25 @@ export function safeHttpUrl(value: string | null | undefined, baseUrl?: string) 
   }
 }
 
+// Strip fenced code blocks so `# comment` / `## Heading` lines inside code aren't
+// harvested as real document headings.
+function stripCodeFences(markdown: string) {
+  return markdown.replace(/```[\s\S]*?```/g, '').replace(/~~~[\s\S]*?~~~/g, '')
+}
+
 export function extractHeadings(markdown: string) {
-  const headings = Array.from(markdown.matchAll(/^#{1,4}\s+(.+)$/gm)).map((match) =>
-    match[1].replace(/\s+#+$/, '').trim(),
+  const headings = Array.from(stripCodeFences(markdown).matchAll(/^#{1,6}\s+(.+)$/gm)).map(
+    (match) => match[1].replace(/\s+#+$/, '').trim(),
   )
   return headings.length ? headings : ['Overview', 'Details', 'Links']
+}
+
+// Headings with their level — for the Lark/Feishu doc outline rail (目录).
+export function extractOutline(markdown: string) {
+  return Array.from(stripCodeFences(markdown).matchAll(/^(#{1,6})\s+(.+)$/gm)).map((match) => ({
+    level: match[1].length,
+    text: match[2].replace(/\s+#+$/, '').trim(),
+  }))
 }
 
 export function extractLinks(markdown: string, baseUrl?: string) {

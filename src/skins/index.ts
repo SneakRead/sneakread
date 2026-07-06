@@ -19,7 +19,17 @@ for (const mod of Object.values(modules)) {
 
 // Menu order (Word first — it's the default). Unknown/new skins sort to the end,
 // so a contributed skin still shows up without editing anything here.
-const ORDER: SkinId[] = ['word', 'vscode', 'docs', 'excel', 'outlook']
+const ORDER: SkinId[] = [
+  'word',
+  'vscode',
+  'docs',
+  'notion',
+  'lark-docs',
+  'slack',
+  'lark',
+  'excel',
+  'outlook',
+]
 const rank = (id: SkinId) => {
   const i = ORDER.indexOf(id)
   return i === -1 ? ORDER.length : i
@@ -36,6 +46,9 @@ export const skins: Skin[] = skinDefinitions.map((d) => ({
   label: d.label,
   appName: d.appName,
   extension: d.fileExtension,
+  accent: d.accent,
+  faviconGlyph: d.faviconGlyph ?? d.label.slice(0, 1).toUpperCase(),
+  i18nNames: d.i18nNames,
 }))
 
 export const skinById = (id: SkinId): Skin => skins.find((s) => s.id === id) ?? skins[0]

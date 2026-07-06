@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type { DocumentRecord } from '../../core/types'
 import type { SkinDefinition } from '../types'
 import { articleBody, getSiteLabel } from '../../core/content'
-import { Codicon, MarkdownContent, CodeEditor } from '../shared'
+import { Codicon, MarkdownContent, CodeEditor, SkinSwitcher } from '../shared'
 import { VscodeLogo } from '../../logos'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
@@ -90,7 +90,7 @@ Because "I'm reading the docs" should be true more often.
 
 ## How
 1. Paste a URL.
-2. Pick a disguise — VS Code, Word, Google Docs, Excel, Outlook.
+2. Pick a disguise — VS Code, Word, Google Docs, Notion, Slack, Lark, Excel, Outlook.
 3. Press \`Esc\` the instant someone walks by.
 
 ## Notes
@@ -191,7 +191,7 @@ export function VscodeSkin({ doc }: { doc: DocumentRecord }) {
   const outline = useMemo(() => {
     const matches = Array.from(body.matchAll(/^(#{1,4})\s+(.+)$/gm))
     if (!matches.length) return [{ title: 'Overview', line: 1, level: 1 }]
-    return matches.slice(0, 12).map((match) => ({
+    return matches.slice(0, 60).map((match) => ({
       title: match[2].replace(/\s+#+$/, '').trim(),
       line: body.slice(0, match.index ?? 0).split('\n').length,
       level: match[1].length,
@@ -265,7 +265,7 @@ export function VscodeSkin({ doc }: { doc: DocumentRecord }) {
             <div className="vsc-tree-head">
               <ChevronDown size={13} aria-hidden="true" /> OUTLINE
             </div>
-            {outline.slice(0, 8).map((item) => (
+            {outline.slice(0, 24).map((item) => (
               <button
                 key={`${item.line}-${item.title}`}
                 type="button"
@@ -354,6 +354,7 @@ export function VscodeSkin({ doc }: { doc: DocumentRecord }) {
               </MonacoBoundary>
             ) : (
               <div className="vsc-render markdown-body">
+                {!openEgg && <SkinSwitcher className="vsc-switch" />}
                 {!openEgg && <h1>{doc.title}</h1>}
                 <MarkdownContent markdown={eggBody ?? body} baseUrl={openEgg ? undefined : doc.sourceUrl} />
               </div>
@@ -418,6 +419,7 @@ const vscode: SkinDefinition = {
   appName: 'Visual Studio Code',
   fileExtension: 'md',
   accent: '#007acc',
+  faviconGlyph: '<>',
   Surface: VscodeSkin,
 }
 export default vscode

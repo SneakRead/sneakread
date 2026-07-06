@@ -58,6 +58,9 @@ import {
 import { ExcelBudgetSkin } from './skins/excel'
 import { VscMenuBar, ActivityBar } from './skins/vscode'
 import { getSkin, skins, skinById } from './skins'
+import { SkinControlsProvider } from './skins/controls'
+import { skinLabel, skinAppName } from './skins/labels'
+import { SkinLogo } from './logos'
 
 /* ------------------------------------------------------------------ *
  * URL / reader plumbing
@@ -384,21 +387,33 @@ function formatTime(date: Date) {
   })
 }
 
-function shortHash(value: string) {
-  let h1 = 0xdeadbeef ^ value.length
-  let h2 = 0x41c6ce57 ^ value.length
-  for (let i = 0; i < value.length; i++) {
-    const ch = value.charCodeAt(i)
-    h1 = Math.imul(h1 ^ ch, 2654435761)
-    h2 = Math.imul(h2 ^ ch, 1597334677)
-  }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
-  return `${(h2 >>> 0).toString(36)}${(h1 >>> 0).toString(36)}`
+// The doc id IS the source URL, base64url-encoded (RFC 4648 §5): reversible and
+// not truncated, so a copied #/<id> link — from the address bar OR the Share
+// button — decodes straight back to the URL and opens the same article on any
+// device, with no server and no visible "http" in the link. UTF-8 safe (URLs can
+// carry non-ASCII paths).
+function b64urlEncode(value: string) {
+  const bytes = new TextEncoder().encode(value)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
+function b64urlDecode(id: string): string | null {
+  try {
+    const b64 = id.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = b64.length % 4 ? b64 + '='.repeat(4 - (b64.length % 4)) : b64
+    const binary = atob(padded)
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
+    return new TextDecoder().decode(bytes)
+  } catch {
+    return null
+  }
+}
+
+// The reversible encoding of the source URL is the id.
 function createId(url: string) {
-  return `doc-${shortHash(url)}`
+  return b64urlEncode(url)
 }
 
 function loadStoredDocuments(): DocumentRecord[] {
@@ -705,21 +720,13 @@ function createPanicDocument(now: string): DocumentRecord {
 }
 
 function setFavicon(skin: SkinId) {
-  const colors: Record<SkinId, string> = {
-    word: '#2b579a',
-    docs: '#4285f4',
-    vscode: '#007acc',
-    excel: '#107c41',
-    outlook: '#0f6cbd',
-  }
-  const label: Record<SkinId, string> = {
-    word: 'W',
-    docs: 'D',
-    vscode: '<>',
-    excel: 'X',
-    outlook: 'O',
-  }
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="10" fill="${colors[skin]}"/><text x="32" y="42" text-anchor="middle" font-family="Arial,sans-serif" font-size="26" font-weight="700" fill="white">${label[skin]}</text></svg>`
+  // Derived from the skin registry (accent + glyph) — no central list to keep in
+  // sync, so a new skin's favicon comes for free once its module is dropped in.
+  const meta = skinById(skin)
+  // Escape XML-special chars — VS Code's glyph is "<>", which is invalid raw SVG.
+  const glyph = meta.faviconGlyph.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const fontSize = meta.faviconGlyph.length > 1 ? 22 : 30
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="10" fill="${meta.accent}"/><text x="32" y="44" text-anchor="middle" font-family="Arial,sans-serif" font-size="${fontSize}" font-weight="700" fill="white">${glyph}</text></svg>`
   let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
   if (!link) {
     link = document.createElement('link')
@@ -751,8 +758,18 @@ function routeFromHash(): Route {
   // Internal doc route: #/<docId>?skin=<skin>
   const [path, queryString = ''] = raw.replace(/^\/?/, '').split('?')
   const params = new URLSearchParams(queryString)
+  let docId: string | null = null
+  if (path) {
+    // A malformed percent-sequence (e.g. "#/%E0%A4%A") makes decodeURIComponent
+    // throw and would crash boot. base64url ids never need decoding anyway.
+    try {
+      docId = decodeURIComponent(path)
+    } catch {
+      docId = path
+    }
+  }
   return {
-    docId: path ? decodeURIComponent(path) : null,
+    docId,
     skin: asSkin(params.get('skin')),
     u: null,
     uSkin: null,
@@ -772,6 +789,12 @@ function AppShell() {
   const [records, setRecords] = useState<DocumentRecord[]>(loadStoredDocuments)
   const initialRoute = useRef(routeFromHash())
   const [activeId, setActiveId] = useState<string | null>(initialRoute.current.docId)
+  // The deep-linked skin, captured once — the skin-apply effect below nulls the
+  // route copy, so grab it here for the "open a shared link we don't have" path.
+  const bootSkin = useRef<SkinId | null>(
+    initialRoute.current.skin ?? initialRoute.current.uSkin,
+  )
+  const didInitialSync = useRef(false)
   const [status, setStatus] = useState<LoadState>('idle')
   const [error, setError] = useState('')
   const [loadingUrl, setLoadingUrl] = useState('')
@@ -796,7 +819,19 @@ function AppShell() {
   const [menuAnchor, setMenuAnchor] = useState<{ x: number; y: number } | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
   // Which skin the home/welcome shows (Word by default; VS Code via the CTA).
+  // homeSkin = which welcome shell the home shows (only Word/VS Code have one).
+  // openSkin = the disguise the NEXT opened article uses (any skin, chosen in the
+  // "Open as…" gallery). Decoupled so picking Notion/Slack/Lark sets the default
+  // and highlights the gallery WITHOUT leaving the home chrome/title/favicon out
+  // of sync (they keep reflecting the real Word/VS Code shell on screen).
   const [homeSkin, setHomeSkin] = useState<SkinId>(DEFAULT_SKIN_ID)
+  const [openSkin, setOpenSkin] = useState<SkinId>(DEFAULT_SKIN_ID)
+  const pickHomeSkin = (id: SkinId) => {
+    setOpenSkin(id)
+    // Only Word and VS Code have real welcome shells; switch the visible home to
+    // those, otherwise keep the current shell (the pick still drives openSkin).
+    if (id === 'word' || id === 'vscode') setHomeSkin(id)
+  }
 
   const panicDoc = useMemo(() => createPanicDocument(formatTime(new Date())), [panic])
   const activeDoc = panic
@@ -824,13 +859,15 @@ function AppShell() {
     }
     // The home tab title tracks the home skin (default Word), matching the
     // filename shown in its chrome — not a hardcoded VS Code.
+    // Feishu/Lark rename the app by region, so resolve the display name per language.
+    const appName = skinAppName(activeSkinMeta, lang)
     const homeName =
       activeSkin === 'vscode'
         ? 'Welcome'
         : `${tr(lang, 'brand')} — Getting Started.${activeSkinMeta.extension}`
     document.title = activeDoc
-      ? `${activeDoc.fileName} - ${activeSkinMeta.appName}`
-      : `${homeName} - ${activeSkinMeta.appName}`
+      ? `${activeDoc.fileName} - ${appName}`
+      : `${homeName} - ${appName}`
     setFavicon(activeSkin)
   }, [activeDoc, activeSkin, activeSkinMeta.appName, panic])
 
@@ -841,6 +878,14 @@ function AppShell() {
   // Keep hash in sync (invisible deep link)
   useEffect(() => {
     if (panic) return
+    // Don't clobber a booting deep link (#/<id> or #u=) to "#/" before the boot
+    // effect below resolves it — otherwise a copied share link is lost if the
+    // fetch is slow/fails. Skip exactly the first sync in that case; once the doc
+    // opens, activeDoc changes and this effect re-runs to write #/<id>.
+    if (!didInitialSync.current) {
+      didInitialSync.current = true
+      if (!activeDoc && (initialRoute.current.docId || initialRoute.current.u)) return
+    }
     updateHash(activeDoc ? activeDoc.id : null, activeSkin)
   }, [activeDoc, activeSkin, panic])
 
@@ -892,18 +937,23 @@ function AppShell() {
     try {
       const override = safeStorageGet(readerSourceKey) || 'auto'
       const parsed = await readWithFallback(targetUrl, controller.signal, override)
-      const pageKind = inferPageKind(targetUrl, parsed.markdown, parsed.title)
+      // One canonical URL for the whole record: the reader may report a
+      // redirected/canonical sourceUrl that differs from targetUrl. The id MUST
+      // derive from the same URL that's stored (and that hydrateDocument re-hashes
+      // on reload) or the address-bar/#share id won't resolve back to this doc.
+      const canonicalUrl = parsed.sourceUrl
+      const pageKind = inferPageKind(canonicalUrl, parsed.markdown, parsed.title)
       // Open in the default skin (Word). The disguise never auto-switches; only
       // the user changes it (File menu). Link-clicks keep the current skin.
       const skin = forcedSkin ?? DEFAULT_SKIN_ID
       const record: DocumentRecord = {
         ...parsed,
-        id: createId(targetUrl),
+        id: createId(canonicalUrl),
         fileName: makeFileName(parsed.title, skin),
         skin,
         pageKind,
         lastOpenedAt: parsed.fetchedAt,
-        projectName: inferProjectName(targetUrl),
+        projectName: inferProjectName(canonicalUrl),
         sizeBytes: new Blob([parsed.raw]).size,
         openCount: 1,
         lastSyncedAt: parsed.fetchedAt,
@@ -951,6 +1001,23 @@ function AppShell() {
     if (!safeHref) {
       event.preventDefault()
       return
+    }
+    // In-page anchors (footnotes, table-of-contents jumps) resolve to the same
+    // article + a #fragment — scroll to the target instead of re-fetching the
+    // whole page (which would drop the reader back at the top).
+    try {
+      const dest = new URL(safeHref)
+      const cur = new URL(activeDoc.sourceUrl)
+      const sameDoc =
+        dest.origin === cur.origin && dest.pathname === cur.pathname && dest.search === cur.search
+      if (dest.hash && sameDoc) {
+        event.preventDefault()
+        const el = document.getElementById(decodeURIComponent(dest.hash.slice(1)))
+        el?.scrollIntoView({ behavior: 'smooth' })
+        return
+      }
+    } catch {
+      // fall through to normal open
     }
     event.preventDefault()
     if (event.metaKey || event.ctrlKey) {
@@ -1029,9 +1096,10 @@ function AppShell() {
   // anyone (the source URL + skin travel in the hash, so it survives sharing).
   const copyShareLink = async () => {
     if (!activeDoc) return
-    const link = `${window.location.origin}/#u=${encodeURIComponent(
-      activeDoc.sourceUrl,
-    )}&skin=${activeSkin}`
+    // Same reversible form as the address bar: #/<base64url(url)>?skin=… — opaque
+    // (no visible http), and the recipient's app decodes it back to the article.
+    // Keep the current path (language / deploy base) so the link opens correctly.
+    const link = `${window.location.origin}${window.location.pathname}#/${activeDoc.id}?skin=${activeSkin}`
     await navigator.clipboard.writeText(link).catch(() => {})
   }
 
@@ -1039,11 +1107,22 @@ function AppShell() {
   // captured synchronously at mount — the hash-sync effect above runs first and
   // would otherwise clobber #u= before we get here.
   useEffect(() => {
-    const { u, uSkin } = initialRoute.current
-    if (!u) return
-    // Keep the current path (lang), drop the #u= so refreshes don't reopen.
-    window.history.replaceState(null, '', window.location.pathname)
-    openUrl(u, uSkin ?? DEFAULT_SKIN_ID)
+    const { u, uSkin, docId } = initialRoute.current
+    // Legacy share form #u=<encoded-url>&skin=…
+    if (u) {
+      window.history.replaceState(null, '', window.location.pathname)
+      openUrl(u, uSkin ?? DEFAULT_SKIN_ID)
+      return
+    }
+    // A #/<id> link we don't have locally (opened on a friend's device, or a
+    // copied address-bar link): the id is the base64url-encoded source URL —
+    // decode it and open the same article. Our own docs already resolve via
+    // records.find, so only the not-found case needs decoding.
+    if (docId && !records.some((record) => record.id === docId)) {
+      const decoded = b64urlDecode(docId)
+      const safe = decoded ? safeHttpUrl(decoded) : null
+      if (safe) openUrl(safe, bootSkin.current ?? DEFAULT_SKIN_ID)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -1092,11 +1171,12 @@ function AppShell() {
   const commands = useMemo<PaletteCommand[]>(() => {
     const list: PaletteCommand[] = []
     skins.forEach((skin) => {
+      const label = skinLabel(skin, lang)
       list.push({
         id: `skin-${skin.id}`,
-        title: t('openAs', { app: skin.label }),
-        hint: skin.appName,
-        keywords: `skin open as ${skin.id} ${skin.label}`,
+        title: t('openAs', { app: label }),
+        hint: skinAppName(skin, lang),
+        keywords: `skin open as ${skin.id} ${label} ${skin.label}`,
         enabled: Boolean(activeDoc),
         run: () => changeSkin(skin.id),
       })
@@ -1169,27 +1249,32 @@ function AppShell() {
   return (
     <div className={`stage skin-${activeSkin}`} onClick={onStageClick}>
       {activeDoc ? (
-        <SkinSurface doc={activeDoc} skin={activeSkin} />
+        <SkinControlsProvider value={{ activeSkin, skins, onSwitchSkin: changeSkin }}>
+          <SkinSurface doc={activeDoc} skin={activeSkin} />
+        </SkinControlsProvider>
       ) : homeSkin === 'vscode' ? (
         <VscodeWelcome
           lang={lang}
-          onOpen={(url) => openUrl(url)}
+          onOpen={(url) => openUrl(url, openSkin)}
           records={recents}
           onOpenRecord={openRecord}
           status={status}
           error={error}
           inApp
+          onPickSkin={pickHomeSkin}
+          homeSkin={openSkin}
         />
       ) : (
         <WordWelcome
           lang={lang}
-          onOpen={(url) => openUrl(url)}
+          onOpen={(url) => openUrl(url, openSkin)}
           records={recents}
           onOpenRecord={openRecord}
           status={status}
           error={error}
           inApp
-          onTrySkin={() => setHomeSkin('vscode')}
+          onPickSkin={pickHomeSkin}
+          homeSkin={openSkin}
         />
       )}
 
@@ -1202,7 +1287,8 @@ function AppShell() {
           onClose={() => setPaletteOpen(false)}
           onOpenUrl={(url, skin) => {
             setPaletteOpen(false)
-            openUrl(url, skin)
+            // Honor the disguise the user chose: explicit > current doc > home gallery pick.
+            openUrl(url, skin ?? activeDoc?.skin ?? openSkin)
           }}
           onOpenRecord={(record) => {
             setPaletteOpen(false)
@@ -1374,7 +1460,7 @@ function AppMenu({
             className="menu-item"
             onClick={run(() => actions.setSkin(skin.id))}
           >
-            <span>{t('openAs', { app: skin.label })}</span>
+            <span>{t('openAs', { app: skinLabel(skin, lang) })}</span>
             {skin.id === activeSkin && <span className="menu-check">✓</span>}
           </button>
         ))}
@@ -1726,7 +1812,10 @@ type HomeProps = {
   error?: string
   showLangs?: boolean
   inApp?: boolean
-  onTrySkin?: () => void
+  /** Pick a disguise from the home gallery (also sets the default for opening). */
+  onPickSkin?: (id: SkinId) => void
+  /** The skin the home is currently previewing/defaulting to (marks the gallery). */
+  homeSkin?: SkinId
 }
 
 // The welcome content shared by every home skin. SSR-safe: the only interactive
@@ -1741,7 +1830,8 @@ function HomeContent({
   error = '',
   showLangs = false,
   inApp = false,
-  onTrySkin,
+  onPickSkin,
+  homeSkin,
 }: HomeProps) {
   const [urlInput, setUrlInput] = useState('')
   const c = landingContent(lang)
@@ -1778,18 +1868,36 @@ function HomeContent({
               </button>
             ) : (
               // Same-page hash anchor: works on the very first click (before
-              // hydration) and keeps the current language path.
-              <a key={s.url} href={`#u=${encodeURIComponent(s.url)}`}>
+              // hydration). Uses the reversible #/<id> form (no visible http).
+              <a key={s.url} href={`#/${createId(s.url)}`}>
                 {s.label}
               </a>
             ),
           )}
         </div>
         {status === 'error' && <p className="welcome-error">{error}</p>}
-        {onTrySkin && (
-          <button type="button" className="welcome-cta" onClick={onTrySkin}>
-            {tr(lang, 'ctaVscode')}
-          </button>
+        {onPickSkin && (
+          <div className="welcome-apps">
+            <div className="welcome-apps-title">{tr(lang, 'homeOpenAs')}</div>
+            <div className="welcome-apps-grid">
+              {skins.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`welcome-app${s.id === homeSkin ? ' is-active' : ''}${
+                    s.id === 'vscode' ? ' is-featured' : ''
+                  }`}
+                  onClick={() => onPickSkin(s.id)}
+                >
+                  <SkinLogo id={s.id} size={26} />
+                  <span className="welcome-app-name">{skinLabel(s, lang)}</span>
+                  {s.id === 'vscode' && (
+                    <span className="welcome-app-tag">{tr(lang, 'homeDevPick')}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
@@ -1885,12 +1993,17 @@ export function AppHome({
   ...rest
 }: HomeProps & { homeSkin?: SkinId }) {
   const [homeSkin, setHomeSkin] = useState<SkinId>(initialSkin)
+  // Pre-boot / static landing: only Word & VS Code have welcome shells, so the
+  // gallery only switches the shell for those; opening happens after boot.
+  const pick = (id: SkinId) => {
+    if (id === 'word' || id === 'vscode') setHomeSkin(id)
+  }
   return (
     <div className={`stage skin-${homeSkin} home-stage`}>
       {homeSkin === 'vscode' ? (
-        <VscodeWelcome {...rest} onTrySkin={undefined} />
+        <VscodeWelcome {...rest} onPickSkin={pick} homeSkin={homeSkin} />
       ) : (
-        <WordWelcome {...rest} onTrySkin={() => setHomeSkin('vscode')} />
+        <WordWelcome {...rest} onPickSkin={pick} homeSkin={homeSkin} />
       )}
     </div>
   )
@@ -1909,7 +2022,8 @@ export function VscodeWelcome({
   error = '',
   showLangs = false,
   inApp = false,
-  onTrySkin,
+  onPickSkin,
+  homeSkin,
 }: HomeProps) {
   return (
     <div className="vsc">
@@ -1967,7 +2081,8 @@ export function VscodeWelcome({
               error={error}
               showLangs={showLangs}
               inApp={inApp}
-              onTrySkin={onTrySkin}
+              onPickSkin={onPickSkin}
+              homeSkin={homeSkin}
             />
           </div>
         </section>

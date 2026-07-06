@@ -1,7 +1,7 @@
 import type { DocumentRecord } from '../../core/types'
 import type { SkinDefinition } from '../types'
 import { articleBody } from '../../core/content'
-import { MSym, MarkdownContent } from '../shared'
+import { MSym, MarkdownContent, SkinSwitcher } from '../shared'
 import { DocsLogo } from '../../logos'
 
 // ===== BLOCK APPENDED BELOW =====
@@ -135,6 +135,7 @@ export function DocsSkin({ doc }: { doc: DocumentRecord }) {
       </div>
       <div className="paper-canvas gdocs-canvas">
         <article className="paper gdocs-page markdown-body">
+          <SkinSwitcher className="paper-switch" />
           <h1>{doc.title}</h1>
           <MarkdownContent markdown={body} baseUrl={doc.sourceUrl} />
         </article>
@@ -154,6 +155,7 @@ const docs: SkinDefinition = {
   appName: 'Google Docs',
   fileExtension: 'gdoc',
   accent: '#4285f4',
+  faviconGlyph: 'D',
   Surface: DocsSkin,
 }
 export default docs

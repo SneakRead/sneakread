@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type { DocumentRecord } from '../../core/types'
 import type { SkinDefinition } from '../types'
 import { getSiteLabel, emailBody, formatBytes } from '../../core/content'
-import { MarkdownContent, WindowButtons } from '../shared'
+import { MarkdownContent, WindowButtons, SkinSwitcher } from '../shared'
 import { OutlookLogo } from '../../logos'
 import { Bell, Paperclip } from 'lucide-react'
 import {
@@ -61,7 +61,7 @@ const olFolders: { label: string; icon: ReactNode; count?: number; active?: bool
 ]
 
 const olOthers = [
-  { from: 'Priya Nair', subject: 'Q3 budget follow-up', preview: 'Sharing the latest numbers before…', day: 'Tue', hue: 168 },
+  { from: 'Finance Ops', subject: 'Q3 budget follow-up', preview: 'Sharing the latest numbers before…', day: 'Tue', hue: 168 },
   { from: 'Design Team', subject: 'Design review notes', preview: 'Great session today — action items…', day: 'Mon', hue: 268 },
   { from: 'Vendor Ops', subject: 'Vendor renewal', preview: 'The contract is up for renewal on…', day: 'Mon', hue: 24 },
   { from: 'Analytics', subject: 'Weekly metrics digest', preview: 'Your dashboards refreshed overnight…', day: 'Sun', hue: 210 },
@@ -205,6 +205,7 @@ export function OutlookSkin({ doc }: { doc: DocumentRecord }) {
         </aside>
 
         <article className="ol-reading markdown-body">
+          <SkinSwitcher className="ol-switch" />
           <div className="ol-reading-head">
             <div className="ol-reading-bar">
               <h1>{doc.title}</h1>

@@ -1,7 +1,7 @@
 import type { DocumentRecord } from '../../core/types'
 import type { SkinDefinition } from '../types'
 import { articleBody } from '../../core/content'
-import { WordFrame, MarkdownContent } from '../shared'
+import { WordFrame, MarkdownContent, SkinSwitcher } from '../shared'
 
 // ===== BLOCK APPENDED BELOW =====
 export function WordSkin({ doc }: { doc: DocumentRecord }) {
@@ -9,6 +9,7 @@ export function WordSkin({ doc }: { doc: DocumentRecord }) {
   return (
     <WordFrame fileName={doc.fileName} statusWords={doc.summary.words}>
       <article className="paper markdown-body">
+        <SkinSwitcher className="paper-switch" />
         <h1>{doc.title}</h1>
         <MarkdownContent markdown={body} baseUrl={doc.sourceUrl} />
       </article>

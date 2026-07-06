@@ -73,6 +73,12 @@
   border-radius: 4px;
 }
 
+.markdown-body hr {
+  border: 0;
+  border-top: 1px solid #e2e4e8;
+  margin: 1.5em 0;
+}
+
 .markdown-body blockquote {
   padding: 8px 14px;
   color: #475467;
@@ -1004,6 +1010,29 @@
 .welcome-paper .welcome-recent span {
   color: #201f1e;
 }
+.welcome-paper .welcome-apps-title {
+  color: #605e5c;
+}
+.welcome-paper .welcome-app {
+  border-color: #e1dfdd;
+  background: #faf9f8;
+  color: #201f1e;
+}
+.welcome-paper .welcome-app:hover {
+  background: #eef2f8;
+  border-color: #2b579a;
+}
+.welcome-paper .welcome-app.is-active {
+  border-color: #2b579a;
+  background: #eaf1fb;
+}
+.welcome-paper .welcome-app.is-featured {
+  border-color: #9db7e8;
+}
+.welcome-paper .welcome-app-tag {
+  background: #e3edfb;
+  color: #2b579a;
+}
 
 /* Try-VS-Code CTA + footer credits (shared) */
 .welcome-cta {
@@ -1412,6 +1441,62 @@
 .welcome-samples a:hover {
   background: #2a2a2a;
   color: #ffffff;
+}
+
+.welcome-apps {
+  max-width: 760px;
+  margin-top: 22px;
+}
+.welcome-apps-title {
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #9aa0a6;
+}
+.welcome-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  gap: 8px;
+}
+.welcome-app {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #d4d4d4;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.welcome-app:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+.welcome-app.is-featured {
+  border-color: rgba(76, 139, 245, 0.5);
+}
+.welcome-app.is-active {
+  border-color: #4c8bf5;
+  background: rgba(76, 139, 245, 0.14);
+}
+.welcome-app-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.welcome-app-tag {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgba(76, 139, 245, 0.2);
+  color: #7fb0ff;
+  font-size: 9px;
+  white-space: nowrap;
 }
 
 .welcome-section {
@@ -3267,4 +3352,2141 @@ kbd {
 .vsc-tab-close:hover {
   background: rgba(255, 255, 255, 0.12);
   opacity: 1;
+}
+
+/* ================================================================== *
+ * New skin roots fill the stage (parity with .vsc/.msapp/.gdocs/.outlook)
+ * ================================================================== */
+.stage > .notion,
+.stage > .slack,
+.stage > .lark,
+.stage > .lark-docs {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ================================================================== *
+ * Content-top skin switcher — the one non-native affordance, kept small
+ * and muted so it reads as a quiet link row at the top of the content.
+ * ================================================================== */
+.skin-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #9aa0a6;
+}
+.skin-switch-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #9aa0a6;
+  text-decoration: none;
+  cursor: pointer;
+}
+.skin-switch-link:hover {
+  color: #4b5563;
+  text-decoration: underline;
+}
+.skin-switch-cur {
+  color: #4b5563;
+  font-weight: 600;
+}
+.skin-switch-sep {
+  color: rgba(0, 0, 0, 0.22);
+}
+
+/* ================================================================== *
+ * Notion — sidebar + List-view database + right peek panel (browser app)
+ * ================================================================== */
+.notion {
+  --nt-font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter,
+    Helvetica, Arial, sans-serif;
+  --nt-text: #37352f;
+  --nt-muted: #787774;
+  --nt-faint: rgba(55, 53, 47, 0.45);
+  --nt-line: rgba(55, 53, 47, 0.09);
+  --nt-hover: rgba(55, 53, 47, 0.06);
+  --nt-blue: #2383e2;
+  display: flex;
+  height: 100%;
+  background: #fff;
+  color: var(--nt-text);
+  font-family: var(--nt-font);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Zone 1 — sidebar */
+.notion .nt-side {
+  flex: 0 0 260px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px 0 6px;
+  background: #f7f6f3;
+  overflow: hidden;
+}
+.notion .nt-ws {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 8px 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.notion .nt-ws:hover {
+  background: var(--nt-hover);
+}
+.notion .nt-ws-icon {
+  display: inline-flex;
+}
+.notion .nt-ws-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.notion .nt-ws-chev {
+  color: var(--nt-muted);
+}
+.notion .nt-home {
+  display: flex;
+  align-items: center;
+  padding: 0 12px 0 8px;
+}
+.notion .nt-nav {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  color: var(--nt-muted);
+  text-align: left;
+  cursor: pointer;
+}
+.notion .nt-nav:hover {
+  background: var(--nt-hover);
+}
+.notion .nt-nav-home {
+  flex: 1;
+}
+.notion .nt-nav-ic {
+  display: inline-flex;
+  color: var(--nt-muted);
+}
+.notion .nt-home-icons {
+  display: inline-flex;
+  gap: 10px;
+  color: var(--nt-muted);
+}
+.notion .nt-tree {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 8px 8px;
+}
+.notion .nt-mtg {
+  margin-bottom: 6px;
+}
+.notion .nt-mtg-card {
+  display: flex;
+  gap: 8px;
+  margin: 4px 4px 6px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(55, 53, 47, 0.045);
+  color: var(--nt-muted);
+}
+.notion .nt-mtg-card b {
+  display: block;
+  font-size: 13px;
+  color: var(--nt-text);
+  font-weight: 600;
+}
+.notion .nt-mtg-card span {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.notion .nt-section {
+  padding: 12px 8px 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--nt-faint);
+}
+.notion .nt-page-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--nt-text);
+  text-align: left;
+  cursor: pointer;
+}
+.notion .nt-page-row:hover {
+  background: var(--nt-hover);
+}
+.notion .nt-page-caret {
+  display: inline-flex;
+  color: var(--nt-faint);
+}
+.notion .nt-page-emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+.notion .nt-page-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notion .nt-page-add {
+  display: inline-flex;
+  color: var(--nt-faint);
+  opacity: 0;
+}
+.notion .nt-page-row:hover .nt-page-add {
+  opacity: 1;
+}
+.notion .nt-page-view {
+  padding: 4px 6px 4px 46px;
+  font-size: 14px;
+  color: var(--nt-muted);
+  cursor: pointer;
+  border-radius: 6px;
+}
+.notion .nt-page-view:hover {
+  background: var(--nt-hover);
+}
+.notion .nt-side-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 2px;
+}
+.notion .nt-newchat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--nt-line);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  color: var(--nt-text);
+  cursor: pointer;
+}
+.notion .nt-kbd {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--nt-faint);
+}
+.notion .nt-side-compose {
+  display: inline-flex;
+  padding: 8px;
+  border: 1px solid var(--nt-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--nt-muted);
+  cursor: pointer;
+}
+
+/* Zone 2 — List view database */
+.notion .nt-db {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+.notion .nt-db-topbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 45px;
+  padding: 0 16px;
+  font-size: 14px;
+  color: var(--nt-text);
+  flex: 0 0 auto;
+}
+.notion .nt-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.notion .nt-crumb:hover {
+  background: var(--nt-hover);
+}
+.notion .nt-crumb-muted {
+  color: var(--nt-muted);
+}
+.notion .nt-crumb-sep {
+  color: var(--nt-faint);
+}
+.notion .nt-db-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 0 40px;
+}
+.notion .nt-db-adds {
+  display: flex;
+  gap: 16px;
+  padding: 6px 48px;
+  color: var(--nt-faint);
+}
+.notion .nt-db-adds span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.notion .nt-db-title {
+  margin: 4px 0 10px;
+  padding: 0 48px;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--nt-text);
+}
+.notion .nt-viewbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 48px 6px;
+  border-bottom: 1px solid var(--nt-line);
+}
+.notion .nt-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px;
+  font-size: 14px;
+  color: var(--nt-muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.notion .nt-view.is-active {
+  color: var(--nt-text);
+  border-bottom-color: var(--nt-text);
+}
+.notion .nt-view-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  color: var(--nt-muted);
+}
+.notion .nt-new-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--nt-blue);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.notion .nt-db-list {
+  padding: 4px 40px;
+}
+.notion .nt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px;
+  border-radius: 6px;
+  border-bottom: 1px solid var(--nt-line);
+  cursor: pointer;
+}
+.notion .nt-row:hover {
+  background: var(--nt-hover);
+}
+.notion .nt-row-ic {
+  color: var(--nt-muted);
+  flex: 0 0 auto;
+}
+.notion .nt-row-name {
+  font-size: 15px;
+  color: var(--nt-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notion .nt-row-faint .nt-row-name {
+  color: var(--nt-faint);
+}
+.notion .nt-row.is-selected {
+  border: 2px solid #a5cdf5;
+  border-radius: 5px;
+  background: rgba(35, 131, 226, 0.04);
+}
+
+/* Zone 3 — peek panel */
+.notion .nt-peek {
+  flex: 1.35 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-left: 1px solid var(--nt-line);
+}
+.notion .nt-peek-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 45px;
+  padding: 0 14px;
+  flex: 0 0 auto;
+}
+.notion .nt-peek-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--nt-muted);
+}
+.notion .nt-peek-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--nt-muted);
+}
+.notion .nt-peek-translate {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 5px;
+  background: rgba(35, 131, 226, 0.1);
+  color: var(--nt-blue);
+}
+.notion .nt-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--nt-text);
+  cursor: pointer;
+}
+.notion .nt-share:hover {
+  background: var(--nt-hover);
+}
+.notion .nt-peek-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.notion .nt-peek-page {
+  max-width: 830px;
+  margin: 0 auto;
+  padding: 8px 60px 40vh;
+}
+.notion .nt-switch {
+  margin-bottom: 20px;
+}
+.notion .nt-title {
+  margin: 0 0 18px;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--nt-text);
+  letter-spacing: -0.01em;
+}
+.notion .nt-props {
+  margin-bottom: 8px;
+}
+.notion .nt-prop {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  font-size: 14px;
+}
+.notion .nt-prop-k {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 160px;
+  flex: 0 0 auto;
+  color: var(--nt-muted);
+}
+.notion .nt-prop-v {
+  color: var(--nt-text);
+}
+.notion .nt-prop-empty {
+  color: var(--nt-faint);
+}
+.notion .nt-prop-link {
+  color: var(--nt-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.notion .nt-prop-add {
+  gap: 8px;
+  color: var(--nt-faint);
+  cursor: pointer;
+}
+.notion .nt-comments {
+  margin: 14px 0 6px;
+}
+.notion .nt-comment-label {
+  font-size: 14px;
+  color: var(--nt-muted);
+}
+.notion .nt-comment-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.notion .nt-comment-av {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #9a8cf0;
+  flex: 0 0 auto;
+}
+.notion .nt-comment-ph {
+  font-size: 14px;
+  color: var(--nt-faint);
+}
+.notion .nt-peek-divider {
+  height: 1px;
+  margin: 14px 0 24px;
+  background: var(--nt-line);
+}
+
+/* content — Notion block look */
+.notion .nt-body {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--nt-text);
+}
+.notion .nt-body h1,
+.notion .nt-body h2,
+.notion .nt-body h3,
+.notion .nt-body h4 {
+  color: var(--nt-text);
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.4em 0 0.3em;
+}
+.notion .nt-body h1 {
+  font-size: 30px;
+}
+.notion .nt-body h2 {
+  font-size: 24px;
+}
+.notion .nt-body h3 {
+  font-size: 20px;
+}
+.notion .nt-body a {
+  color: var(--nt-blue);
+  text-decoration: none;
+}
+.notion .nt-body a:hover {
+  text-decoration: underline;
+}
+.notion .nt-body blockquote {
+  padding: 0 0 0 14px;
+  color: var(--nt-text);
+  background: none;
+  border-left: 3px solid var(--nt-text);
+}
+.notion .nt-body code {
+  padding: 2px 5px;
+  background: #f1f1ef;
+  color: #eb5757;
+  border-radius: 4px;
+  font-size: 0.86em;
+}
+.notion .nt-body pre {
+  padding: 16px;
+  background: #f7f6f3;
+  border-radius: 6px;
+}
+.notion .nt-body pre code {
+  padding: 0;
+  background: none;
+  color: var(--nt-text);
+}
+.notion .nt-body table {
+  border-collapse: collapse;
+}
+.notion .nt-body th,
+.notion .nt-body td {
+  border: 1px solid rgba(55, 53, 47, 0.16);
+  padding: 7px 10px;
+}
+.notion .nt-body th {
+  background: #f7f6f3;
+  font-weight: 600;
+}
+.notion .nt-body img {
+  border-radius: 6px;
+}
+
+/* ================================================================== *
+ * Feishu / Lark Docs — flat white doc editor with a left outline rail
+ * ================================================================== */
+.lark-docs {
+  --fs-blue: #3370ff;
+  --fs-blue-dark: #245bdb;
+  --fs-text: #1f2329;
+  --fs-2: #646a73;
+  --fs-3: #8f959e;
+  --fs-line: #dee0e3;
+  --fs-hover: rgba(31, 35, 41, 0.06);
+  --fs-fill: #f5f6f7;
+  --fs-font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #fff;
+  color: var(--fs-text);
+  font-family: var(--fs-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.lark-docs .ld-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--fs-line);
+  flex: 0 0 auto;
+}
+.lark-docs .ld-top-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.lark-docs .ld-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--fs-2);
+  cursor: pointer;
+}
+.lark-docs .ld-ic:hover {
+  background: var(--fs-hover);
+}
+.lark-docs .ld-title-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  margin-left: 4px;
+}
+.lark-docs .ld-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 14px;
+}
+.lark-docs .ld-crumb {
+  color: var(--fs-2);
+  white-space: nowrap;
+}
+.lark-docs .ld-crumb-cur {
+  color: var(--fs-text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 340px;
+}
+.lark-docs .ld-crumb-sep {
+  color: var(--fs-3);
+  flex: 0 0 auto;
+}
+.lark-docs .ld-badge {
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--fs-fill);
+  color: var(--fs-3);
+  font-size: 11px;
+  flex: 0 0 auto;
+}
+.lark-docs .ld-pin {
+  display: inline-flex;
+  margin-left: 2px;
+  color: var(--fs-3);
+}
+.lark-docs .ld-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--fs-3);
+}
+.lark-docs .ld-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--fs-blue);
+  cursor: pointer;
+}
+.lark-docs .ld-top-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.lark-docs .ld-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 13px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--fs-blue);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.lark-docs .ld-share:hover {
+  background: var(--fs-blue-dark);
+}
+.lark-docs .ld-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--fs-line);
+}
+.lark-docs .ld-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 2px;
+  border-radius: 50%;
+  background: #6e5be6;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lark-docs .ld-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.lark-docs .ld-outline {
+  flex: 0 0 232px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 10px 12px;
+  overflow-y: auto;
+}
+.lark-docs .ld-outline-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px 8px;
+}
+.lark-docs .ld-outline-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fs-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lark-docs .ld-outline-collapse {
+  color: var(--fs-3);
+  flex: 0 0 auto;
+}
+.lark-docs .ld-outline-item {
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--fs-2);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lark-docs .ld-outline-item:hover {
+  background: var(--fs-hover);
+}
+.lark-docs .ld-outline-item.is-active {
+  color: var(--fs-blue);
+  background: rgba(51, 112, 255, 0.08);
+}
+.lark-docs .ld-outline-item[data-level="2"] {
+  padding-left: 20px;
+}
+.lark-docs .ld-outline-item[data-level="3"] {
+  padding-left: 34px;
+  font-size: 12.5px;
+}
+.lark-docs .ld-outline-item[data-level="4"] {
+  padding-left: 48px;
+  font-size: 12.5px;
+}
+
+.lark-docs .ld-canvas {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  background: #fff;
+}
+.lark-docs .ld-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 60px 40vh;
+}
+.lark-docs .ld-switch {
+  margin-bottom: 22px;
+}
+.lark-docs .ld-doc-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.lark-docs .ld-doc-ic {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+.lark-docs .ld-doc-title {
+  margin: 0 0 12px;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--fs-text);
+}
+.lark-docs .ld-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 20px;
+  padding: 5px 12px;
+  border: 1px solid var(--fs-line);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  color: var(--fs-2);
+  cursor: pointer;
+}
+.lark-docs .ld-ai-spark {
+  color: #7f5bf0;
+}
+.lark-docs .ld-ai-trial {
+  padding: 0 5px;
+  border-radius: 4px;
+  background: #efe8fd;
+  color: #7f5bf0;
+  font-size: 11px;
+}
+.lark-docs .ld-page.markdown-body {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--fs-text);
+}
+.lark-docs .ld-page.markdown-body h1,
+.lark-docs .ld-page.markdown-body h2,
+.lark-docs .ld-page.markdown-body h3,
+.lark-docs .ld-page.markdown-body h4 {
+  color: var(--fs-text);
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 1.5em 0 0.5em;
+}
+.lark-docs .ld-page.markdown-body h1 {
+  font-size: 26px;
+}
+.lark-docs .ld-page.markdown-body h2 {
+  font-size: 22px;
+}
+.lark-docs .ld-page.markdown-body h3 {
+  font-size: 18px;
+}
+.lark-docs .ld-page.markdown-body a {
+  color: var(--fs-blue);
+  text-decoration: none;
+}
+.lark-docs .ld-page.markdown-body a:hover {
+  text-decoration: underline;
+}
+.lark-docs .ld-page.markdown-body blockquote {
+  padding: 6px 14px;
+  color: var(--fs-2);
+  background: #f7f8fa;
+  border-left: 3px solid var(--fs-line);
+}
+.lark-docs .ld-page.markdown-body code {
+  padding: 2px 5px;
+  background: var(--fs-fill);
+  color: var(--fs-text);
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+.lark-docs .ld-page.markdown-body pre {
+  padding: 14px 16px;
+  background: var(--fs-fill);
+  border-radius: 6px;
+}
+.lark-docs .ld-page.markdown-body pre code {
+  padding: 0;
+  background: none;
+}
+.lark-docs .ld-page.markdown-body th,
+.lark-docs .ld-page.markdown-body td {
+  border: 1px solid var(--fs-line);
+  padding: 8px 12px;
+}
+.lark-docs .ld-page.markdown-body th {
+  background: var(--fs-fill);
+  font-weight: 600;
+}
+
+/* ================================================================== *
+ * Slack — channel / message view (aubergine chrome, article as a
+ * grouped thread of bot messages; headings stay chat-sized)
+ * ================================================================== */
+.slack {
+  --sl-plum: #4a154b;
+  --sl-rail: #3a0e3b;
+  --sl-side: #3f0e40;
+  --sl-side-txt: #cfc3d0;
+  --sl-side-hover: #350d36;
+  --sl-active: #1164a3;
+  --sl-text: #1d1c1d;
+  --sl-2: #616061;
+  --sl-line: #e2e2e2;
+  --sl-green: #007a5a;
+  --sl-link: #1264a3;
+  --sl-font: "Lato", "Helvetica Neue", Helvetica, "Segoe UI", Roboto, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #fff;
+  color: var(--sl-text);
+  font-family: var(--sl-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.slack .sl-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 12px;
+  background: var(--sl-plum);
+  flex: 0 0 auto;
+}
+.slack .sl-top-nav {
+  display: flex;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 18px;
+}
+.slack .sl-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(720px, 46%);
+  margin: 0 auto;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+}
+.slack .sl-top-help {
+  display: inline-flex;
+  padding: 5px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+}
+
+.slack .sl-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.slack .sl-rail {
+  flex: 0 0 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 12px;
+  background: var(--sl-rail);
+}
+.slack .sl-rail-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  align-items: center;
+}
+.slack .sl-rail-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 56px;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: rgba(255, 255, 255, 0.72);
+  font: inherit;
+  cursor: pointer;
+}
+.slack .sl-rail-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.slack .sl-rail-btn.is-active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.slack .sl-rail-label {
+  font-size: 11px;
+  font-weight: 700;
+}
+.slack .sl-rail-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.slack .sl-rail-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+}
+.slack .sl-rail-me {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.slack .sl-presence {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--sl-rail);
+  background: #949494;
+}
+.slack .sl-presence.on {
+  background: #2eb67d;
+}
+
+.slack .sl-side {
+  flex: 0 0 260px;
+  display: flex;
+  flex-direction: column;
+  background: var(--sl-side);
+  color: var(--sl-side-txt);
+}
+.slack .sl-side-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 49px;
+  padding: 0 14px 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.slack .sl-side-compose {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.16);
+}
+.slack .sl-side-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.slack .sl-quick-row {
+  display: block;
+  padding: 5px 16px;
+  font-size: 15px;
+  color: var(--sl-side-txt);
+  cursor: pointer;
+}
+.slack .sl-section {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 16px 3px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--sl-side-txt);
+}
+.slack .sl-chan,
+.slack .sl-dm {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 16px;
+  font-size: 15px;
+  color: var(--sl-side-txt);
+  cursor: pointer;
+}
+.slack .sl-chan:hover,
+.slack .sl-dm:hover {
+  background: var(--sl-side-hover);
+}
+.slack .sl-chan-hash {
+  opacity: 0.7;
+}
+.slack .sl-chan.is-active {
+  background: var(--sl-active);
+  color: #fff;
+  font-weight: 700;
+}
+.slack .sl-chan.is-active .sl-chan-hash {
+  opacity: 1;
+}
+.slack .sl-dm-av {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.slack .sl-dm-av .sl-presence {
+  border-color: var(--sl-side);
+  width: 9px;
+  height: 9px;
+  right: -2px;
+  bottom: -2px;
+}
+
+.slack .sl-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+.slack .sl-chan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 49px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--sl-line);
+  flex: 0 0 auto;
+}
+.slack .sl-chan-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 18px;
+  font-weight: 800;
+}
+.slack .sl-chan-title-chev {
+  color: var(--sl-2);
+}
+.slack .sl-chan-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sl-2);
+}
+.slack .sl-huddle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border: 1px solid var(--sl-line);
+  border-radius: 6px;
+  background: none;
+  color: var(--sl-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.slack .sl-chan-ic {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.slack .sl-stream {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 0 16px;
+}
+.slack .sl-switch {
+  padding: 0 20px;
+  margin-bottom: 10px;
+}
+.slack .sl-day {
+  position: relative;
+  text-align: center;
+  margin: 10px 0 14px;
+}
+.slack .sl-day::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: var(--sl-line);
+}
+.slack .sl-day span {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--sl-line);
+  border-radius: 12px;
+  padding: 2px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.slack .sl-msg {
+  display: flex;
+  gap: 8px;
+  padding: 5px 20px;
+}
+.slack .sl-msg:hover {
+  background: #f8f8f8;
+}
+.slack .sl-msg-av {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+.slack .sl-msg-content {
+  flex: 1;
+  min-width: 0;
+  max-width: 900px;
+}
+.slack .sl-msg-head {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 1px;
+}
+.slack .sl-msg-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--sl-text);
+}
+.slack .sl-app-badge {
+  padding: 0 4px;
+  border-radius: 3px;
+  background: #e8e8e8;
+  color: #616061;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transform: translateY(-1px);
+}
+.slack .sl-msg-time {
+  font-size: 12px;
+  color: var(--sl-2);
+}
+.slack .sl-msg-cont {
+  position: relative;
+  padding: 1px 20px 1px 64px;
+}
+.slack .sl-msg-cont:hover {
+  background: #f8f8f8;
+}
+.slack .sl-cont-time {
+  position: absolute;
+  left: 16px;
+  width: 44px;
+  text-align: right;
+  font-size: 11px;
+  line-height: 22px;
+  color: var(--sl-2);
+  opacity: 0;
+}
+.slack .sl-msg-cont:hover .sl-cont-time {
+  opacity: 1;
+}
+.slack .sl-msg-body.markdown-body {
+  font-size: 15px;
+  line-height: 1.46;
+  color: var(--sl-text);
+}
+.slack .sl-msg-body.markdown-body h1,
+.slack .sl-msg-body.markdown-body h2,
+.slack .sl-msg-body.markdown-body h3,
+.slack .sl-msg-body.markdown-body h4 {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--sl-text);
+  margin: 8px 0 2px;
+}
+.slack .sl-msg-body.markdown-body img {
+  max-width: 380px;
+  margin: 6px 0;
+  border: 1px solid var(--sl-line);
+  border-radius: 8px;
+}
+.slack .sl-msg-body.markdown-body p,
+.slack .sl-msg-body.markdown-body ul,
+.slack .sl-msg-body.markdown-body ol {
+  margin: 0 0 6px;
+}
+.slack .sl-msg-body.markdown-body a {
+  color: var(--sl-link);
+  text-decoration: none;
+}
+.slack .sl-msg-body.markdown-body a:hover {
+  text-decoration: underline;
+}
+.slack .sl-msg-body.markdown-body blockquote {
+  margin: 4px 0 6px;
+  padding: 0 0 0 12px;
+  color: var(--sl-text);
+  background: none;
+  border-left: 4px solid #dddddd;
+}
+.slack .sl-msg-body.markdown-body code {
+  background: #f6f6f6;
+  border: 1px solid #e8e8e8;
+  color: #e01e5a;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+.slack .sl-msg-body.markdown-body pre {
+  background: #f8f8f8;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+.slack .sl-msg-body.markdown-body pre code {
+  border: 0;
+  color: var(--sl-text);
+  background: none;
+}
+.slack .sl-msg-body.markdown-body th,
+.slack .sl-msg-body.markdown-body td {
+  border: 1px solid var(--sl-line);
+  padding: 6px 10px;
+}
+.slack .sl-reactions {
+  display: flex;
+  gap: 6px;
+  padding: 4px 20px 4px 64px;
+}
+.slack .sl-react {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid #d6e9fb;
+  border-radius: 12px;
+  background: #e8f5fc;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1264a3;
+}
+.slack .sl-react-add {
+  background: #f2f2f2;
+  border-color: #e2e2e2;
+  color: var(--sl-2);
+}
+.slack .sl-composer {
+  margin: 0 16px 18px;
+  border: 1px solid #b7b7b7;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.slack .sl-composer-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 12px;
+  color: var(--sl-2);
+  background: #fafafa;
+  border-bottom: 1px solid var(--sl-line);
+}
+.slack .sl-composer-input {
+  padding: 11px 12px;
+  color: #8d8d8d;
+  font-size: 15px;
+}
+.slack .sl-composer-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+}
+.slack .sl-composer-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--sl-2);
+}
+.slack .sl-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: transparent;
+  color: #b7b7b7;
+}
+
+/* ================================================================== *
+ * Feishu / Lark — desktop Messenger: labeled nav sidebar, message list
+ * with tag pills, group chat with tab strip + bubbles. Article shared
+ * into the group as one long message bubble.
+ * ================================================================== */
+.lark {
+  --lk-blue: #3370ff;
+  --lk-blue-dark: #245bdb;
+  --lk-text: #1f2329;
+  --lk-2: #646a73;
+  --lk-3: #8f959e;
+  --lk-line: #e5e6eb;
+  --lk-fill: #f2f3f5;
+  --lk-hover: #f5f6f7;
+  --lk-sel: #e1eaff;
+  --lk-red: #f54a45;
+  --lk-in: #f2f3f5;
+  --lk-out: #dce9ff;
+  --lk-font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  height: 100%;
+  background: #fff;
+  color: var(--lk-text);
+  font-family: var(--lk-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Zone 1 — nav sidebar */
+.lark .lk-nav {
+  flex: 0 0 232px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid var(--lk-line);
+}
+.lark .lk-nav-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px 8px;
+}
+.lark .lk-nav-me {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #6e5be6;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+.lark .lk-nav-add {
+  margin-left: auto;
+  display: inline-flex;
+  padding: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--lk-2);
+  cursor: pointer;
+}
+.lark .lk-nav-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 12px 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--lk-fill);
+  color: var(--lk-3);
+  font-size: 13px;
+}
+.lark .lk-nav-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 8px;
+}
+.lark .lk-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--lk-text);
+  text-align: left;
+  cursor: pointer;
+}
+.lark .lk-nav-item:hover {
+  background: var(--lk-hover);
+}
+.lark .lk-nav-item.is-active {
+  background: var(--lk-sel);
+  color: var(--lk-blue);
+  font-weight: 500;
+}
+.lark .lk-nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lark .lk-nav-badge {
+  flex: 0 0 auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--lk-red);
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+.lark .lk-nav-sub {
+  padding-left: 34px;
+  font-size: 14px;
+  color: var(--lk-2);
+}
+.lark .lk-nav-divider {
+  height: 1px;
+  margin: 8px 8px;
+  background: var(--lk-line);
+}
+.lark .lk-nav-doc {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--lk-2);
+  text-align: left;
+  cursor: pointer;
+}
+.lark .lk-nav-doc:hover {
+  background: var(--lk-hover);
+}
+.lark .lk-nav-doc-ic {
+  flex: 0 0 auto;
+  color: var(--lk-blue);
+}
+.lark .lk-nav-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--lk-line);
+}
+.lark .lk-foot-app {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #3370ff;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.lark .lk-foot-cat {
+  font-size: 16px;
+}
+.lark .lk-foot-plus {
+  display: inline-flex;
+  color: var(--lk-3);
+}
+
+/* Zone 2 — message list */
+.lark .lk-list {
+  flex: 0 0 344px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid var(--lk-line);
+}
+.lark .lk-list-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 8px;
+  font-size: 18px;
+  color: var(--lk-2);
+}
+.lark .lk-list-title b {
+  color: var(--lk-text);
+}
+.lark .lk-strip {
+  display: flex;
+  gap: 6px;
+  padding: 4px 12px 12px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--lk-line);
+}
+.lark .lk-strip-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 52px;
+  flex: 0 0 auto;
+}
+.lark .lk-strip-av {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+.lark .lk-strip-name {
+  max-width: 52px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--lk-2);
+}
+.lark .lk-list-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.lark .lk-chat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 16px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.lark .lk-chat:hover {
+  background: var(--lk-hover);
+}
+.lark .lk-chat.is-active {
+  background: var(--lk-sel);
+}
+.lark .lk-chat.is-read .lk-chat-name,
+.lark .lk-chat.is-read .lk-chat-preview {
+  color: var(--lk-3);
+}
+.lark .lk-chat-av {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+.lark .lk-chat-doc {
+  background: #eef3ff !important;
+  color: var(--lk-blue);
+}
+.lark .lk-av-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  border: 2px solid #fff;
+  background: var(--lk-red);
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 17px;
+  text-align: center;
+}
+.lark .lk-chat-main {
+  flex: 1;
+  min-width: 0;
+}
+.lark .lk-chat-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lark .lk-chat-name {
+  font-size: 15px;
+  color: var(--lk-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lark .lk-chat-time {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--lk-3);
+}
+.lark .lk-chat-preview {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--lk-2);
+  overflow: hidden;
+}
+.lark .lk-chat-preview > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lark .lk-sent-check {
+  color: var(--lk-3);
+  flex: 0 0 auto;
+  vertical-align: -2px;
+}
+
+/* tag pills */
+.lark .lk-tag {
+  flex: 0 0 auto;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 17px;
+}
+.lark .lk-tag-ext {
+  background: #f0f1f2;
+  color: #8f959e;
+}
+.lark .lk-tag-bot {
+  background: #fdf1dd;
+  color: #a56a1e;
+}
+.lark .lk-tag-gov {
+  background: var(--lk-sel);
+  color: var(--lk-blue);
+}
+.lark .lk-tag-ai {
+  background: #efe8fd;
+  color: #7f5bf0;
+}
+
+/* Zone 3 — conversation */
+.lark .lk-convo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+.lark .lk-convo-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--lk-line);
+  flex: 0 0 auto;
+}
+.lark .lk-convo-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.lark .lk-convo-av {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #fff;
+}
+.lark .lk-convo-name {
+  font-size: 17px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lark .lk-convo-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  color: var(--lk-2);
+}
+.lark .lk-convo-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--lk-2);
+  flex: 0 0 auto;
+}
+.lark .lk-convo-ic {
+  display: inline-flex;
+  cursor: pointer;
+}
+.lark .lk-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--lk-line);
+  flex: 0 0 auto;
+}
+.lark .lk-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--lk-2);
+  cursor: pointer;
+}
+.lark .lk-tab.is-active {
+  background: var(--lk-sel);
+  color: var(--lk-blue);
+  font-weight: 500;
+}
+.lark .lk-tab-add {
+  padding: 4px 6px;
+  color: var(--lk-3);
+}
+
+.lark .lk-thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 24px 20px;
+  background: #fff;
+}
+.lark .lk-switch {
+  margin-bottom: 12px;
+}
+.lark .lk-date {
+  text-align: center;
+  margin: 4px 0 18px;
+  font-size: 12px;
+  color: var(--lk-3);
+}
+.lark .lk-msg {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.lark .lk-msg-av {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+}
+.lark .lk-msg-col {
+  min-width: 0;
+  max-width: 760px;
+}
+.lark .lk-msg-sender {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--lk-2);
+}
+.lark .lk-msg-name {
+  font-weight: 500;
+  color: var(--lk-text);
+}
+.lark .lk-msg-time {
+  color: var(--lk-3);
+}
+.lark .lk-bubble {
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.lark .lk-bubble-in {
+  padding: 4px 2px;
+  background: transparent;
+}
+.lark .lk-post {
+  padding: 16px 20px;
+  background: var(--lk-in);
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.72;
+  color: var(--lk-text);
+}
+.lark .lk-post-title {
+  margin: 0 0 14px;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.lark .lk-post h1,
+.lark .lk-post h2,
+.lark .lk-post h3,
+.lark .lk-post h4 {
+  color: var(--lk-text);
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 1.3em 0 0.4em;
+}
+.lark .lk-post h1 {
+  font-size: 18px;
+}
+.lark .lk-post h2 {
+  font-size: 17px;
+}
+.lark .lk-post h3 {
+  font-size: 16px;
+}
+.lark .lk-post a {
+  color: var(--lk-blue);
+  text-decoration: none;
+}
+.lark .lk-post a:hover {
+  text-decoration: underline;
+}
+.lark .lk-post blockquote {
+  margin: 8px 0;
+  padding: 6px 14px;
+  color: var(--lk-2);
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 3px solid #c9cdd4;
+}
+.lark .lk-post code {
+  padding: 2px 5px;
+  background: rgba(31, 35, 41, 0.06);
+  color: var(--lk-text);
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+.lark .lk-post pre {
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid var(--lk-line);
+  border-radius: 6px;
+}
+.lark .lk-post pre code {
+  padding: 0;
+  background: none;
+}
+.lark .lk-post th,
+.lark .lk-post td {
+  border: 1px solid #d6d8dd;
+  padding: 8px 12px;
+  background: #fff;
+}
+.lark .lk-post th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.lark .lk-msg-own {
+  justify-content: flex-end;
+}
+.lark .lk-msg-own .lk-msg-col {
+  max-width: 60%;
+}
+.lark .lk-bubble-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.lark .lk-receipt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #34c724;
+  color: #fff;
+  flex: 0 0 auto;
+}
+.lark .lk-bubble-out {
+  padding: 9px 13px;
+  background: var(--lk-out);
+  color: var(--lk-text);
+}
+
+.lark .lk-composer {
+  border-top: 1px solid var(--lk-line);
+  background: #fff;
+  flex: 0 0 auto;
+}
+.lark .lk-composer-input {
+  padding: 12px 18px 6px;
+  font-size: 14px;
+  color: var(--lk-3);
+}
+.lark .lk-composer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px 12px;
+}
+.lark .lk-composer-tools {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--lk-2);
+}
+.lark .lk-send-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--lk-sel);
+  color: var(--lk-blue);
+  cursor: pointer;
+}
+
+/* ================================================================== *
+ * Lark polish — hover feedback (a live app lights up under the cursor)
+ * and a prominent primary send button.
+ * ================================================================== */
+.lark .lk-convo-ic {
+  padding: 5px;
+  border-radius: 6px;
+}
+.lark .lk-convo-ic:hover {
+  background: var(--lk-hover);
+}
+.lark .lk-tab:not(.is-active):hover {
+  background: var(--lk-hover);
+}
+.lark .lk-send-btn {
+  background: var(--lk-blue);
+  color: #fff;
+}
+.lark .lk-send-btn:hover {
+  background: var(--lk-blue-dark);
+}
+.lark .lk-post hr {
+  border-top-color: #d6d8dd;
+}
+
+.notion .nt-peek-more {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.notion .nt-peek-more:hover {
+  background: var(--nt-hover);
 }

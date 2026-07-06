@@ -46,7 +46,7 @@ type Dict = Record<string, string>
 const en: Dict = {
   onboardTitle: 'Turn any web page into work',
   onboardBody:
-    'Paste a link and SneakRead disguises it full-screen as VS Code, Word, Docs, a spreadsheet, or email — so you can read anything while looking busy.',
+    'Paste a link and SneakRead disguises it full-screen as VS Code, Word, Docs, Notion, Slack, Lark, a spreadsheet, or email — so you can read anything while looking busy.',
   onboardK: 'Command menu — open a link, switch apps, go fullscreen, hide',
   onboardEsc: 'Boss key — flip to a budget sheet instantly; press again to restore',
   onboardFull: 'Click any link to keep browsing, still disguised',
@@ -75,6 +75,8 @@ const en: Dict = {
   wEmptyRecent: 'paste a link to open it',
   wTip: 'open a link, switch apps, or hide your screen',
   wNoFiles: 'No files opened yet',
+  homeOpenAs: 'Open as',
+  homeDevPick: 'Dev pick',
   loadTitle: 'Opening…',
   loadHint: 'Fetching readable text through the reader — usually a few seconds',
   loadCancel: 'Cancel',
@@ -83,7 +85,7 @@ const en: Dict = {
 const zh: Dict = {
   onboardTitle: '把任何网页，变成正经工作',
   onboardBody:
-    '粘贴一个链接，摸鱼会把它整屏伪装成 VS Code、Word、文档、表格或邮件——让你边摸鱼边像在干活。',
+    '粘贴一个链接，摸鱼会把它整屏伪装成 VS Code、Word、文档、Notion、Slack、飞书、表格或邮件——让你边摸鱼边像在干活。',
   onboardK: '命令菜单——打开链接、切换软件、全屏、隐藏',
   onboardEsc: '老板键——一键切成预算表，再按一次恢复',
   onboardFull: '点任意链接继续浏览，依旧是伪装状态',
@@ -112,6 +114,8 @@ const zh: Dict = {
   wEmptyRecent: '粘贴一个链接即可打开',
   wTip: '打开链接、切换软件，或一键遮屏',
   wNoFiles: '还没有打开任何文件',
+  homeOpenAs: '打开为…',
+  homeDevPick: '程序员最爱',
   loadTitle: '正在打开…',
   loadHint: '正在通过阅读器抓取正文——通常几秒钟',
   loadCancel: '取消',
@@ -120,7 +124,7 @@ const zh: Dict = {
 const es: Dict = {
   onboardTitle: 'Convierte cualquier web en trabajo',
   onboardBody:
-    'Pega un enlace y SneakRead lo disfraza a pantalla completa como VS Code, Word, Docs, una hoja de cálculo o correo, para que leas lo que sea sin dejar de parecer ocupado.',
+    'Pega un enlace y SneakRead lo disfraza a pantalla completa como VS Code, Word, Docs, Notion, Slack, Lark, una hoja de cálculo o correo, para que leas lo que sea sin dejar de parecer ocupado.',
   onboardK: 'Menú de comandos: abrir un enlace, cambiar de app, pantalla completa, ocultar',
   onboardEsc: 'Tecla del jefe: cambia al instante a una hoja de presupuesto; púlsala de nuevo para volver',
   onboardFull: 'Haz clic en cualquier enlace para seguir navegando, aún disfrazado',
@@ -149,6 +153,8 @@ const es: Dict = {
   wEmptyRecent: 'pega un enlace para abrirlo',
   wTip: 'abrir un enlace, cambiar de app u ocultar la pantalla',
   wNoFiles: 'Aún no se ha abierto ningún archivo',
+  homeOpenAs: 'Abrir como',
+  homeDevPick: 'Favorito dev',
   loadTitle: 'Abriendo…',
   loadHint: 'Obteniendo el texto a través del lector; suele tardar unos segundos',
   loadCancel: 'Cancelar',
@@ -157,7 +163,7 @@ const es: Dict = {
 const hi: Dict = {
   onboardTitle: 'किसी भी वेब पेज को काम में बदलें',
   onboardBody:
-    'एक लिंक पेस्ट करें और SneakRead उसे पूरे स्क्रीन पर VS Code, Word, Docs, स्प्रेडशीट या ईमेल जैसा बना देता है — ताकि आप व्यस्त दिखते हुए कुछ भी पढ़ सकें।',
+    'एक लिंक पेस्ट करें और SneakRead उसे पूरे स्क्रीन पर VS Code, Word, Docs, Notion, Slack, Lark, स्प्रेडशीट या ईमेल जैसा बना देता है — ताकि आप व्यस्त दिखते हुए कुछ भी पढ़ सकें।',
   onboardK: 'कमांड मेनू — लिंक खोलें, ऐप बदलें, फुलस्क्रीन, छिपाएँ',
   onboardEsc: 'बॉस की — तुरंत बजट शीट पर जाएँ; वापस लाने के लिए फिर दबाएँ',
   onboardFull: 'ब्राउज़िंग जारी रखने के लिए किसी भी लिंक पर क्लिक करें, फिर भी छद्म रूप में',
@@ -186,6 +192,8 @@ const hi: Dict = {
   wEmptyRecent: 'खोलने के लिए एक लिंक पेस्ट करें',
   wTip: 'लिंक खोलें, ऐप बदलें, या स्क्रीन छिपाएँ',
   wNoFiles: 'अभी तक कोई फ़ाइल नहीं खोली गई',
+  homeOpenAs: 'इस रूप में खोलें',
+  homeDevPick: 'डेव पसंद',
   loadTitle: 'खुल रहा है…',
   loadHint: 'रीडर के ज़रिए टेक्स्ट लाया जा रहा है — आमतौर पर कुछ सेकंड',
   loadCancel: 'रद्द करें',
@@ -194,7 +202,7 @@ const hi: Dict = {
 const ar: Dict = {
   onboardTitle: 'حوّل أي صفحة ويب إلى عمل',
   onboardBody:
-    'الصق رابطًا وسيموّهه SneakRead بملء الشاشة كأنه VS Code أو Word أو Docs أو جدول بيانات أو بريد — لتقرأ أي شيء بينما تبدو مشغولًا.',
+    'الصق رابطًا وسيموّهه SneakRead بملء الشاشة كأنه VS Code أو Word أو Docs أو Notion أو Slack أو Lark أو جدول بيانات أو بريد — لتقرأ أي شيء بينما تبدو مشغولًا.',
   onboardK: 'قائمة الأوامر — افتح رابطًا، بدّل التطبيقات، ملء الشاشة، إخفاء',
   onboardEsc: 'زر المدير — انتقل فورًا إلى جدول ميزانية؛ اضغط مرة أخرى للعودة',
   onboardFull: 'انقر أي رابط لمواصلة التصفّح، وأنت متخفٍّ',
@@ -223,6 +231,8 @@ const ar: Dict = {
   wEmptyRecent: 'الصق رابطًا لفتحه',
   wTip: 'افتح رابطًا، بدّل التطبيقات، أو أخفِ الشاشة',
   wNoFiles: 'لم يتم فتح أي ملف بعد',
+  homeOpenAs: 'افتح كـ',
+  homeDevPick: 'اختيار المطوّر',
   loadTitle: 'جارٍ الفتح…',
   loadHint: 'يتم جلب النص عبر القارئ — عادةً بضع ثوانٍ',
   loadCancel: 'إلغاء',
@@ -231,7 +241,7 @@ const ar: Dict = {
 const pt: Dict = {
   onboardTitle: 'Transforme qualquer página em trabalho',
   onboardBody:
-    'Cole um link e o SneakRead o disfarça em tela cheia como VS Code, Word, Docs, uma planilha ou e-mail — para você ler qualquer coisa parecendo ocupado.',
+    'Cole um link e o SneakRead o disfarça em tela cheia como VS Code, Word, Docs, Notion, Slack, Lark, uma planilha ou e-mail — para você ler qualquer coisa parecendo ocupado.',
   onboardK: 'Menu de comandos: abrir um link, trocar de app, tela cheia, ocultar',
   onboardEsc: 'Tecla do chefe: pula na hora para uma planilha de orçamento; pressione de novo para voltar',
   onboardFull: 'Clique em qualquer link para continuar navegando, ainda disfarçado',
@@ -260,6 +270,8 @@ const pt: Dict = {
   wEmptyRecent: 'cole um link para abri-lo',
   wTip: 'abrir um link, trocar de app ou ocultar a tela',
   wNoFiles: 'Nenhum arquivo aberto ainda',
+  homeOpenAs: 'Abrir como',
+  homeDevPick: 'Favorito dev',
   loadTitle: 'Abrindo…',
   loadHint: 'Buscando o texto pelo leitor — geralmente alguns segundos',
   loadCancel: 'Cancelar',
@@ -268,7 +280,7 @@ const pt: Dict = {
 const ru: Dict = {
   onboardTitle: 'Превратите любую веб-страницу в работу',
   onboardBody:
-    'Вставьте ссылку, и SneakRead замаскирует её на весь экран под VS Code, Word, Docs, таблицу или почту — читайте что угодно, оставаясь «занятым».',
+    'Вставьте ссылку, и SneakRead замаскирует её на весь экран под VS Code, Word, Docs, Notion, Slack, Lark, таблицу или почту — читайте что угодно, оставаясь «занятым».',
   onboardK: 'Меню команд — открыть ссылку, сменить приложение, полный экран, скрыть',
   onboardEsc: 'Кнопка «босс» — мгновенно к таблице бюджета; нажмите ещё раз, чтобы вернуться',
   onboardFull: 'Нажимайте на ссылки, чтобы продолжать просмотр, оставаясь замаскированным',
@@ -297,6 +309,8 @@ const ru: Dict = {
   wEmptyRecent: 'вставьте ссылку, чтобы открыть',
   wTip: 'открыть ссылку, сменить приложение или скрыть экран',
   wNoFiles: 'Файлы ещё не открывались',
+  homeOpenAs: 'Открыть как',
+  homeDevPick: 'Выбор разработчиков',
   loadTitle: 'Открытие…',
   loadHint: 'Загружаем текст через ридер — обычно несколько секунд',
   loadCancel: 'Отмена',
@@ -305,7 +319,7 @@ const ru: Dict = {
 const ja: Dict = {
   onboardTitle: 'どんなウェブページも仕事に変える',
   onboardBody:
-    'リンクを貼ると、SneakRead が全画面で VS Code・Word・ドキュメント・表計算・メールに偽装します。忙しそうに見せながら何でも読めます。',
+    'リンクを貼ると、SneakRead が全画面で VS Code・Word・ドキュメント・Notion・Slack・Lark・表計算・メールに偽装します。忙しそうに見せながら何でも読めます。',
   onboardK: 'コマンドメニュー — リンクを開く、アプリ切替、全画面、隠す',
   onboardEsc: 'ボスキー — 即座に予算シートへ。もう一度押すと元に戻ります',
   onboardFull: 'リンクをクリックすれば、偽装したまま読み進められます',
@@ -334,6 +348,8 @@ const ja: Dict = {
   wEmptyRecent: 'リンクを貼ると開けます',
   wTip: 'リンクを開く、アプリ切替、画面を隠す',
   wNoFiles: 'まだファイルを開いていません',
+  homeOpenAs: '別のアプリで開く',
+  homeDevPick: '開発者に人気',
   loadTitle: '開いています…',
   loadHint: 'リーダー経由で本文を取得中 — 通常は数秒です',
   loadCancel: 'キャンセル',
@@ -342,7 +358,7 @@ const ja: Dict = {
 const fr: Dict = {
   onboardTitle: 'Transformez n’importe quelle page en travail',
   onboardBody:
-    'Collez un lien et SneakRead le déguise en plein écran en VS Code, Word, Docs, un tableur ou un e-mail — pour lire n’importe quoi tout en ayant l’air occupé.',
+    'Collez un lien et SneakRead le déguise en plein écran en VS Code, Word, Docs, Notion, Slack, Lark, un tableur ou un e-mail — pour lire n’importe quoi tout en ayant l’air occupé.',
   onboardK: 'Menu de commandes : ouvrir un lien, changer d’appli, plein écran, masquer',
   onboardEsc: 'Touche patron : bascule aussitôt vers un tableau de budget ; appuyez encore pour revenir',
   onboardFull: 'Cliquez sur un lien pour continuer à naviguer, toujours déguisé',
@@ -371,6 +387,8 @@ const fr: Dict = {
   wEmptyRecent: 'collez un lien pour l’ouvrir',
   wTip: 'ouvrir un lien, changer d’appli ou masquer l’écran',
   wNoFiles: 'Aucun fichier ouvert pour l’instant',
+  homeOpenAs: 'Ouvrir en',
+  homeDevPick: 'Choix des devs',
   loadTitle: 'Ouverture…',
   loadHint: 'Récupération du texte via le lecteur — quelques secondes en général',
   loadCancel: 'Annuler',
@@ -379,7 +397,7 @@ const fr: Dict = {
 const de: Dict = {
   onboardTitle: 'Verwandle jede Webseite in Arbeit',
   onboardBody:
-    'Füge einen Link ein und SneakRead tarnt ihn im Vollbild als VS Code, Word, Docs, Tabelle oder E-Mail — so liest du alles und wirkst beschäftigt.',
+    'Füge einen Link ein und SneakRead tarnt ihn im Vollbild als VS Code, Word, Docs, Notion, Slack, Lark, Tabelle oder E-Mail — so liest du alles und wirkst beschäftigt.',
   onboardK: 'Befehlsmenü — Link öffnen, App wechseln, Vollbild, ausblenden',
   onboardEsc: 'Chef-Taste — sofort zur Budgettabelle; erneut drücken zum Zurückwechseln',
   onboardFull: 'Klicke auf einen Link, um getarnt weiterzulesen',
@@ -408,6 +426,8 @@ const de: Dict = {
   wEmptyRecent: 'einen Link einfügen zum Öffnen',
   wTip: 'Link öffnen, App wechseln oder Bildschirm ausblenden',
   wNoFiles: 'Noch keine Dateien geöffnet',
+  homeOpenAs: 'Öffnen als',
+  homeDevPick: 'Dev-Favorit',
   loadTitle: 'Wird geöffnet…',
   loadHint: 'Text wird über den Reader geladen — meist ein paar Sekunden',
   loadCancel: 'Abbrechen',

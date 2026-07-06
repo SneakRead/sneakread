@@ -9,7 +9,7 @@ import {
   extractImages,
   safeHttpUrl,
 } from '../../core/content'
-import { MsTitleBar, MsRibbonTabs, MsRibbonRight, MarkdownContent } from '../shared'
+import { MsTitleBar, MsRibbonTabs, MsRibbonRight, MarkdownContent, SkinSwitcher } from '../shared'
 import { ExcelLogo } from '../../logos'
 import {
   ClipboardPaste24Regular,
@@ -795,6 +795,7 @@ export function ExcelSkin({ doc }: { doc: DocumentRecord }) {
           <XlSheet rows={rows} />
         </div>
         <aside className="excel-read markdown-body">
+          <SkinSwitcher className="excel-switch" />
           <div className="excel-read-head">
             <ExcelLogo size={16} /> {site}
           </div>
@@ -834,6 +835,7 @@ const excel: SkinDefinition = {
   appName: 'Excel',
   fileExtension: 'xlsx',
   accent: '#107c41',
+  faviconGlyph: 'X',
   Surface: ExcelSkin,
 }
 export default excel
