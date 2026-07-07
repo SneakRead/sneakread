@@ -20,7 +20,8 @@ for (const lang of ALL_LANGS) {
   const head = seoHead(lang)
   const body = renderLanding(lang)
   const html = template
-    .replace('<html lang="en">', `<html lang="${lang}">`)
+    // Arabic is right-to-left; everything else stays LTR.
+    .replace('<html lang="en">', `<html lang="${lang}"${lang === 'ar' ? ' dir="rtl"' : ''}>`)
     .replace(/<title>[\s\S]*?<\/title>\s*/, '')
     // The base meta description spans multiple lines — match across them so the
     // per-language one from seoHead() isn't duplicated.
@@ -36,16 +37,21 @@ const appHtml = template
   .replace('</head>', '    <meta name="robots" content="noindex" />\n  </head>')
 await writePage('app', appHtml)
 
+// Trailing-slash URLs (the live server 301s /zh -> /zh/) + build-date lastmod.
+const lastmod = new Date().toISOString().slice(0, 10)
 const urls = ALL_LANGS.map(
-  (l) => `  <url><loc>${SITE}${l === 'en' ? '/' : '/' + l}</loc></url>`,
+  (l) =>
+    `  <url><loc>${SITE}${l === 'en' ? '/' : '/' + l + '/'}</loc><lastmod>${lastmod}</lastmod></url>`,
 ).join('\n')
 await writeFile(
   path.join(dist, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,
 )
+// No Disallow for /app: the page carries a noindex meta, and blocking the path
+// in robots.txt would stop Google from ever seeing that noindex.
 await writeFile(
   path.join(dist, 'robots.txt'),
-  `User-agent: *\nAllow: /\nDisallow: /app\nSitemap: ${SITE}/sitemap.xml\n`,
+  `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`,
 )
 
 // GitHub Pages serves 404.html for any unmatched path. Ship the bare client

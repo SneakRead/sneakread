@@ -7,7 +7,9 @@ import { tr, ALL_LANGS, type Lang } from './i18n'
 export const SITE = 'https://sneakread.com'
 export { ALL_LANGS }
 
-const langPath = (l: Lang) => (l === 'en' ? '/' : `/${l}`)
+// Trailing slash everywhere: the live server 301s /zh -> /zh/, so canonical,
+// hreflang, og:url and the sitemap must all point at the slashed final URL.
+const langPath = (l: Lang) => (l === 'en' ? '/' : `/${l}/`)
 
 function esc(s: string) {
   return s
@@ -40,6 +42,18 @@ export function seoHead(lang: Lang): string {
       acceptedAnswer: { '@type': 'Answer', text: q.a },
     })),
   }
+  const webApp = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'SneakRead',
+    alternateName: '摸鱼',
+    url: `${SITE}/`,
+    applicationCategory: 'BrowserApplication',
+    operatingSystem: 'Any',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    inLanguage: [...ALL_LANGS],
+    screenshot: `${SITE}/og.png`,
+  }
   return [
     `<title>${esc(c.metaTitle)}</title>`,
     `<meta name="description" content="${esc(c.metaDesc)}" />`,
@@ -58,5 +72,6 @@ export function seoHead(lang: Lang): string {
     `<meta name="twitter:image" content="${SITE}/og.png" />`,
     `<meta name="robots" content="index,follow" />`,
     `<script type="application/ld+json">${JSON.stringify(faq)}</script>`,
+    `<script type="application/ld+json">${JSON.stringify(webApp)}</script>`,
   ].join('\n    ')
 }
