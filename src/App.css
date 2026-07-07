@@ -154,6 +154,7 @@
 .skin-lark-docs,
 .skin-slack,
 .skin-dingtalk,
+.skin-wecom,
 .skin-wps,
 .skin-teams,
 .skin-gmail {
@@ -180,6 +181,7 @@
 .skin-lark,
 .skin-lark-docs,
 .skin-dingtalk { --pal-active-bg: #3370ff; }
+.skin-wecom { --pal-active-bg: #1688e8; }
 .skin-slack { --pal-active-bg: #611f69; }
 .skin-wps { --pal-active-bg: #e33e38; }
 .skin-teams { --pal-active-bg: #5b5fc7; }
@@ -3601,7 +3603,8 @@ kbd {
 .stage > .notion,
 .stage > .slack,
 .stage > .lark,
-.stage > .lark-docs {
+.stage > .lark-docs,
+.stage > .wecom {
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -5805,6 +5808,8 @@ kbd {
   .lk-list,
   .dt-rail,
   .dt-list,
+  .wc-rail,
+  .wc-list,
   .sl-rail,
   .sl-side,
   .tm-rail,
