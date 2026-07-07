@@ -211,6 +211,14 @@ export function cleanReaderMarkdown(markdown: string) {
     if (joined === unwrapped) break
     unwrapped = joined
   }
+  // Jina renders card-style links with the headline's heading marker INSIDE the
+  // link text — "[## Title …](url)" or "[![img](src) ## Title …](url)". A "#"
+  // that isn't at line start can never be a heading, so react-markdown shows a
+  // literal "## ". Drop the marker; keep same-line-only whitespace so a real
+  // heading on the next line is never touched.
+  unwrapped = unwrapped
+    .replace(/(\[)[ \t]*#{1,6}[ \t]+/g, '$1')
+    .replace(/(!\[[^\]\n]*\]\([^()\s]*\))[ \t]+#{1,6}[ \t]+/g, '$1 ')
   const rawLines = stripEscapeArtifacts(unwrapped.split('\n'))
   // Boilerplate like "domain.com is blocked" arrives with a blank line between
   // the domain and the error code — compare against the next *solid* line.
