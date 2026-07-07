@@ -95,6 +95,8 @@ const en: Dict = {
   errUnknown: 'Could not open this page. Check the link and try again.',
   shareBlurb: 'Looking busy in {app} 😎 my “work doc”: {link}',
   mAlias: 'Display name…',
+  mReaderKey: 'API key…',
+  readerKeyPrompt: 'Your own Jina API key (jina.ai) for a private, higher rate limit. Stored only on this device, sent only to Jina. Leave empty to remove.',
   aliasPrompt: 'Name shown in the disguise (avatar, watermark). Leave empty to clear.',
 }
 
@@ -144,6 +146,8 @@ const zh: Dict = {
   errUnknown: '无法打开这个页面，请检查链接后重试。',
   shareBlurb: '我正在用 {app} 光明正大地摸鱼，这是我的「工作文档」：{link}',
   mAlias: '伪装署名…',
+  mReaderKey: 'API 密钥…',
+  readerKeyPrompt: '你自己的 Jina API 密钥（jina.ai），独享更高的抓取额度。只存在本机、只发给 Jina。留空则清除。',
   aliasPrompt: '显示在伪装里的名字（头像、水印）。留空则清除。',
 }
 
@@ -193,6 +197,8 @@ const es: Dict = {
   errUnknown: 'No se pudo abrir esta página. Revisa el enlace e inténtalo de nuevo.',
   shareBlurb: 'Fingiendo trabajar en {app} 😎 mi “documento de trabajo”: {link}',
   mAlias: 'Nombre visible…',
+  mReaderKey: 'Clave API…',
+  readerKeyPrompt: 'Tu clave de API de Jina (jina.ai) para un límite privado más alto. Solo en este dispositivo, solo se envía a Jina. Vacío para borrar.',
   aliasPrompt: 'Nombre mostrado en el disfraz (avatar, marca de agua). Vacío para borrar.',
 }
 
@@ -242,6 +248,8 @@ const hi: Dict = {
   errUnknown: 'यह पेज नहीं खुल सका। लिंक जाँचकर फिर कोशिश करें।',
   shareBlurb: '{app} में व्यस्त दिखते हुए पढ़ रहा हूँ 😎 मेरा “वर्क डॉक”: {link}',
   mAlias: 'प्रदर्शित नाम…',
+  mReaderKey: 'API कुंजी…',
+  readerKeyPrompt: 'अपनी Jina API कुंजी (jina.ai) — निजी, अधिक रेट लिमिट के लिए। सिर्फ़ इस डिवाइस पर, सिर्फ़ Jina को भेजी जाती है। हटाने के लिए खाली छोड़ें।',
   aliasPrompt: 'भेस में दिखने वाला नाम (अवतार, वॉटरमार्क)। हटाने के लिए खाली छोड़ें।',
 }
 
@@ -291,6 +299,8 @@ const ar: Dict = {
   errUnknown: 'تعذّر فتح هذه الصفحة. تحقق من الرابط وحاول مجددًا.',
   shareBlurb: 'أتظاهر بالعمل في {app} 😎 هذا «مستند عملي»: {link}',
   mAlias: 'الاسم المعروض…',
+  mReaderKey: 'مفتاح API…',
+  readerKeyPrompt: 'مفتاح Jina API الخاص بك (jina.ai) لحد أعلى خاص بك. يُحفظ على هذا الجهاز فقط ويُرسل إلى Jina فقط. اتركه فارغًا للحذف.',
   aliasPrompt: 'الاسم الظاهر في التنكّر (الصورة الرمزية والعلامة المائية). اتركه فارغًا للمسح.',
 }
 
@@ -340,6 +350,8 @@ const pt: Dict = {
   errUnknown: 'Não foi possível abrir esta página. Verifique o link e tente de novo.',
   shareBlurb: 'Fingindo trabalhar no {app} 😎 meu “documento de trabalho”: {link}',
   mAlias: 'Nome exibido…',
+  mReaderKey: 'Chave de API…',
+  readerKeyPrompt: 'Sua chave de API da Jina (jina.ai) para um limite privado maior. Fica só neste dispositivo, enviada só à Jina. Vazio para remover.',
   aliasPrompt: 'Nome mostrado no disfarce (avatar, marca-d’água). Vazio para limpar.',
 }
 
@@ -389,6 +401,8 @@ const ru: Dict = {
   errUnknown: 'Не удалось открыть страницу. Проверьте ссылку и повторите.',
   shareBlurb: 'Делаю вид, что работаю в {app} 😎 мой «рабочий документ»: {link}',
   mAlias: 'Отображаемое имя…',
+  mReaderKey: 'API-ключ…',
+  readerKeyPrompt: 'Ваш ключ Jina API (jina.ai) — личный, повышенный лимит. Хранится только на этом устройстве, отправляется только в Jina. Пусто — удалить.',
   aliasPrompt: 'Имя в маскировке (аватар, водяной знак). Пусто — очистить.',
 }
 
@@ -438,6 +452,8 @@ const ja: Dict = {
   errUnknown: 'このページを開けませんでした。リンクを確認して再試行してください。',
   shareBlurb: '{app} で仕事してるフリして読書中😎 私の「仕事のファイル」→ {link}',
   mAlias: '表示名…',
+  mReaderKey: 'API キー…',
+  readerKeyPrompt: '自分の Jina API キー（jina.ai）。専用の高いレート上限が使えます。この端末にのみ保存され、Jina にのみ送信されます。空にすると削除。',
   aliasPrompt: '偽装に表示される名前（アバター・透かし）。空にすると解除。',
 }
 
@@ -487,6 +503,8 @@ const fr: Dict = {
   errUnknown: 'Impossible d’ouvrir cette page. Vérifiez le lien et réessayez.',
   shareBlurb: 'J’ai l’air de bosser sur {app} 😎 mon « document de travail » : {link}',
   mAlias: 'Nom affiché…',
+  mReaderKey: 'Clé API…',
+  readerKeyPrompt: 'Votre clé API Jina (jina.ai) pour une limite privée plus élevée. Stockée sur cet appareil, envoyée uniquement à Jina. Vide pour effacer.',
   aliasPrompt: 'Nom affiché dans le déguisement (avatar, filigrane). Vide pour effacer.',
 }
 
@@ -536,6 +554,8 @@ const de: Dict = {
   errUnknown: 'Seite konnte nicht geöffnet werden. Link prüfen und erneut versuchen.',
   shareBlurb: 'Sehe in {app} sehr beschäftigt aus 😎 mein „Arbeitsdokument“: {link}',
   mAlias: 'Anzeigename…',
+  mReaderKey: 'API-Schlüssel…',
+  readerKeyPrompt: 'Dein eigener Jina-API-Schlüssel (jina.ai) für ein privates, höheres Limit. Bleibt auf diesem Gerät, geht nur an Jina. Leer lassen zum Entfernen.',
   aliasPrompt: 'Name in der Tarnung (Avatar, Wasserzeichen). Leer lassen zum Löschen.',
 }
 

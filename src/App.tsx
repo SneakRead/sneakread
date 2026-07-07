@@ -562,18 +562,31 @@ type ProviderId = 'jinacn' | 'jina' | 'firecrawl'
 const readerSourceKey = 'sneakread-reader-source'
 const readerCooldownKey = 'sneakread-reader-cd'
 const readerGoodKey = 'sneakread-reader-good'
+// A user-supplied Jina API key (File ▸ Reader ▸ API key…). Stored ONLY in
+// localStorage on this device, sent ONLY to the two Jina reader hosts as a
+// Bearer token — it buys the user their own (much higher) rate limit. Never
+// bundled, never sent to analytics, never anywhere else.
+const readerKeyKey = 'sneakread-jina-key'
+
+function getJinaKey() {
+  return (safeStorageGet(readerKeyKey) || '').trim()
+}
 
 // Jina's cache is the fast path (a cached page returns in ~1-2s; a forced
 // fresh render of a heavy news page can take 10-20s AND burns rate-limit
 // budget). Casual reading is fine with minutes-old content — only an explicit
 // user Refresh bypasses the cache.
-const jinaHeaders = (noCache: boolean): Record<string, string> => ({
-  ...(noCache ? { 'X-No-Cache': 'true' } : {}),
-  'X-Respond-With': 'markdown+frontmatter',
-  'X-Retain-Images': 'all',
-  'X-Retain-Links': 'all',
-  'X-Timeout': '20',
-})
+const jinaHeaders = (noCache: boolean): Record<string, string> => {
+  const key = getJinaKey()
+  return {
+    ...(noCache ? { 'X-No-Cache': 'true' } : {}),
+    ...(key ? { Authorization: `Bearer ${key}` } : {}),
+    'X-Respond-With': 'markdown+frontmatter',
+    'X-Retain-Images': 'all',
+    'X-Retain-Links': 'all',
+    'X-Timeout': '20',
+  }
+}
 
 async function readViaJina(
   base: string,
@@ -1501,6 +1514,20 @@ function AppShell() {
     bumpAlias((value) => value + 1)
   }
 
+  // Power users paste their own Jina key for a private, much higher rate
+  // limit. Local-only; the key itself never reaches analytics or any host
+  // other than Jina (see jinaHeaders).
+  const promptReaderKey = () => {
+    const next = window.prompt(t('readerKeyPrompt'), getJinaKey())
+    if (next === null) return
+    const clean = next.trim()
+    if (clean) safeStorageSet(readerKeyKey, clean)
+    else safeStorageRemove(readerKeyKey)
+    track('reader_key_set', { set: Boolean(clean) })
+    // The new key should prove itself right away.
+    if (!panic && activeDoc) openUrl(activeDoc.sourceUrl, activeDoc.skin, true)
+  }
+
   // Open a shared / sample deep link (#u=<url>&skin=<skin>). Read the route
   // captured synchronously at mount — the hash-sync effect above runs first and
   // would otherwise clobber #u= before we get here.
@@ -1557,14 +1584,40 @@ function AppShell() {
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  // Warm Monaco (the ~3.6MB real VS Code editor chunk) only when a VS Code
-  // surface is on deck — a Word-home visitor should never download an IDE.
-  // The skin degrades gracefully anyway (static CodeEditor until Monaco lands).
+  // Warm Monaco (the ~3.6MB real VS Code editor chunk) for everyone — but only
+  // after the page has fully loaded AND the browser is idle, so it never costs
+  // first paint or an interaction a single byte. A VS Code surface coming on
+  // deck skips the wait (the import is module-cached, so double calls are free);
+  // until it lands the skin gracefully shows the static CodeEditor.
   useEffect(() => {
     if (activeSkin === 'vscode' || openSkin === 'vscode') {
       void import('./monacoCode')
     }
   }, [activeSkin, openSkin])
+
+  useEffect(() => {
+    let cancelled = false
+    let timer: number | undefined
+    const warm = () => {
+      if (!cancelled) void import('./monacoCode')
+    }
+    const whenIdle = () => {
+      const idle = (
+        window as Window & {
+          requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+        }
+      ).requestIdleCallback
+      if (idle) idle(warm, { timeout: 15000 })
+      else timer = window.setTimeout(warm, 5000)
+    }
+    if (document.readyState === 'complete') whenIdle()
+    else window.addEventListener('load', whenIdle, { once: true })
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+      window.removeEventListener('load', whenIdle)
+    }
+  }, [])
 
   // Analytics: sanitized SPA page_views (a stable virtual path — never the
   // hash, which encodes the source URL) + palette opens.
@@ -1758,6 +1811,7 @@ function AppShell() {
             setSkin: activeDoc ? changeSkin : pickHomeSkin,
             setLang: setLanguage,
             alias: promptAlias,
+            readerKey: promptReaderKey,
             setReaderSource: (source) => {
               if (source === 'auto') safeStorageRemove(readerSourceKey)
               else safeStorageSet(readerSourceKey, source)
@@ -1866,6 +1920,7 @@ type MenuActions = {
   setLang: (code: Lang) => void
   alias: () => void
   setReaderSource: (source: string) => void
+  readerKey: () => void
   refresh: () => void
   share: () => void
   copy: () => void
@@ -1959,28 +2014,39 @@ function AppMenu({
           <span>{t('mReader')}</span>
           <span className="menu-caret">{readerOpen ? '▾' : '▸'}</span>
         </button>
-        {readerOpen &&
-          (
-            [
-              ['auto', t('mReaderAuto')],
-              ['jinacn', 'Jina CN'],
-              ['jina', 'Jina Global'],
-              ['firecrawl', 'Firecrawl'],
-            ] as const
-          ).map(([value, label]) => (
+        {readerOpen && (
+          <>
+            {(
+              [
+                ['auto', t('mReaderAuto')],
+                ['jinacn', 'Jina CN'],
+                ['jina', 'Jina Global'],
+                ['firecrawl', 'Firecrawl'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className="menu-item menu-sub"
+                onClick={run(() => {
+                  setReaderPref(value)
+                  actions.setReaderSource(value)
+                })}
+              >
+                <span>{label}</span>
+                {value === readerPref && <span className="menu-check">✓</span>}
+              </button>
+            ))}
             <button
-              key={value}
               type="button"
               className="menu-item menu-sub"
-              onClick={run(() => {
-                setReaderPref(value)
-                actions.setReaderSource(value)
-              })}
+              onClick={run(actions.readerKey)}
             >
-              <span>{label}</span>
-              {value === readerPref && <span className="menu-check">✓</span>}
+              <span>{t('mReaderKey')}</span>
+              {Boolean(getJinaKey()) && <span className="menu-check">✓</span>}
             </button>
-          ))}
+          </>
+        )}
         <div className="menu-sep" />
         <button
           type="button"
