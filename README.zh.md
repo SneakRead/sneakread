@@ -6,6 +6,10 @@
 
 粘贴任意公开网址，SneakRead 通过阅读器把它抓成正文，然后**全屏渲染成一个真实的桌面软件** —— VS Code、Claude Code、Word、WPS、Google Docs、Notion、Slack、飞书、钉钉、Teams、Gmail、Excel 或 Outlook —— 让「看网页」看起来像「在工作」。品牌：全球叫 **SneakRead**，中文叫 **摸鱼**。
 
+![BBC 世界杯首页，此刻是一份 Word 文档——真功能区、真字数统计、真状态栏](docs/screenshots/zh-word.jpg)
+
+<sup>↑ BBC 世界杯首页，此刻是一份 `.docx`。状态栏里的字数是真的一个一个数出来的。</sup>
+
 设计目标是**以假乱真**（和最新版的真软件像素级一致），对标 [remoteok.com/vscode](https://remoteok.com/vscode)：
 
 - **一个软件占满整个视口**（`/` 就是阅读器，`/app` 只是旧链接别名）。没有多余外壳 —— 只有目标软件自己的标题栏（带真实品牌 logo）、功能区/活动栏、状态栏。
@@ -35,6 +39,14 @@
 
 在 **文件 ▸ 伪装署名** 里填上你的名字，所有伪装都会「穿上」它——头像、Notion
 工作区名，以及飞书文档的企业风平铺水印。
+
+### 同一篇文章，十四副面孔
+
+| | |
+| --- | --- |
+| ![Claude Code 皮肤](docs/screenshots/zh-claude-code.jpg) **Claude Code** —— 文章变成 AI 助手的回答，带工具调用 | ![飞书文档皮肤](docs/screenshots/zh-lark-docs.jpg) **飞书文档** —— 注意满屏平铺的署名水印 |
+| ![钉钉皮肤](docs/screenshots/zh-dingtalk.jpg) **钉钉** —— 连「已读 18/23」都演出来了 | ![WPS 皮肤](docs/screenshots/zh-wps.jpg) **WPS 文字** —— 全中文界面，会员皇冠都在 |
+| ![老板键](docs/screenshots/zh-boss-key.jpg) **老板键** —— 按 Esc 秒变《Q3 预算复盘.xlsx》 | ![手机版](docs/screenshots/zh-mobile.jpg) **手机也能摸** —— 重型界面自动收起 |
 
 ## 隐私（说实话版）
 

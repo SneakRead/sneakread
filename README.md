@@ -6,6 +6,10 @@
 
 Paste any public URL. SneakRead reads it through `r.jina.ai`, then renders it **full-screen as a real desktop app** — VS Code, Claude Code, Word, WPS, Google Docs, Notion, Slack, Lark/Feishu, DingTalk, Teams, Gmail, Excel, or Outlook — so reading looks like working. Brand: **SneakRead** globally, **摸鱼** in Chinese.
 
+![The BBC World Cup homepage, rendered as a Word document — live word count, real ribbon, real status bar](docs/screenshots/en-word.jpg)
+
+<sup>↑ The BBC World Cup homepage, as a `.docx`. The word count in the status bar is real.</sup>
+
 The design goal is 以假乱真 (indistinguishable from the real thing), modelled on
 [remoteok.com/vscode](https://remoteok.com/vscode) / `/docx` / `/docs`:
 
@@ -57,6 +61,22 @@ New pages open as Word by default, and you can switch the disguise anytime from
 the File menu, the command palette, or the hover-to-reveal switcher at the top of
 any article. Set **File ▸ Display name** and every disguise wears *your* name —
 avatars, the Notion workspace, and a Feishu-style tiled watermark.
+
+### The same article, wearing different faces
+
+| | |
+| --- | --- |
+| ![Claude Code skin](docs/screenshots/en-claude-code.jpg) **Claude Code** — the article arrives as an agent reply, tool calls and all | ![Notion skin](docs/screenshots/en-notion.jpg) **Notion** — a page inside a database, properties included |
+| ![Slack skin](docs/screenshots/en-slack.jpg) **Slack** — split into a believable run of messages | ![Gmail skin](docs/screenshots/en-gmail.jpg) **Gmail** — a newsletter, smart replies included |
+| ![Teams skin](docs/screenshots/en-teams.jpg) **Teams** — a channel post with replies | ![In-character loading](docs/screenshots/en-loading.jpg) **Even loading stays in character** — a document skeleton, never a spinner |
+
+### The boss key
+
+Press `Esc` (or let auto-hide trigger on window blur) and the screen flips to a
+plausible quarterly budget — real formulas, a real chart, twelve months of cash
+flow. Press `Esc` again to resume reading.
+
+![The boss key: a believable Q3 budget spreadsheet with formulas and a chart](docs/screenshots/en-boss-key.jpg)
 
 ## Privacy, honestly
 
