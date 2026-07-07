@@ -10,8 +10,8 @@
 .wecom {
   --wc-green: #07c160;
   --wc-green-dark: #06ad56;
-  --wc-rail: #27364d;
-  --wc-rail-soft: #34445d;
+  --wc-rail: #327ee0;
+  --wc-rail-soft: rgba(255, 255, 255, 0.18);
   --wc-text: #1f2329;
   --wc-muted: #858b96;
   --wc-line: #e6e8eb;
@@ -19,7 +19,7 @@
   --wc-chat-bg: #f1f2f4;
   --wc-hover: #eceff2;
   --wc-active: #e2e5ea;
-  --wc-own: #9eea6a;
+  --wc-own: #cde3fb;
   --wc-font: "PingFang SC", -apple-system, BlinkMacSystemFont, "Hiragino Sans GB",
     "Microsoft YaHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   display: flex;
@@ -45,11 +45,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
   width: 38px;
   height: 38px;
   margin-bottom: 18px;
   border-radius: 6px;
-  background: linear-gradient(180deg, #19cf77, #05a85d);
+  background: linear-gradient(180deg, #58a4f4, #2e7ff0);
   color: #fff;
   font-size: 17px;
   font-weight: 600;
@@ -494,7 +495,7 @@
 
 .wecom .wc-bubble-own {
   background: var(--wc-own);
-  border: 1px solid #8ddb5b;
+  border: 1px solid #aecdf0;
 }
 
 .wecom .wc-bubble-own::after {

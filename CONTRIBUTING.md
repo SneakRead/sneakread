@@ -17,7 +17,7 @@ src/
     index.tsx       # registry — auto-discovers skins via import.meta.glob
     _template/      # copy this to start a new skin (not registered)
     word/ vscode/ claude-code/ docs/ notion/ lark-docs/
-    slack/ lark/ dingtalk/ wps/ excel/ outlook/ teams/ gmail/
+    slack/ lark/ dingtalk/ wecom/ wps/ excel/ outlook/ teams/ gmail/
   App.tsx           # the app shell: routing, state, palette, boss-key, home
 ```
 

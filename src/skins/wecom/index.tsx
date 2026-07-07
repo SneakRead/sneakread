@@ -64,7 +64,7 @@ const STR = {
   zh: {
     search: '搜索',
     group: '项目协作群',
-    members: '18人',
+    members: '(18)',
     today: '今天',
     assistant: '信息同步助手',
     bot: '机器人',
@@ -84,7 +84,7 @@ const STR = {
   en: {
     search: 'Search',
     group: 'Project Sync',
-    members: '18 members',
+    members: '(18)',
     today: 'Today',
     assistant: 'Digest Assistant',
     bot: 'Bot',
