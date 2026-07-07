@@ -48,6 +48,7 @@
 | ![Claude Code 皮肤](docs/screenshots/zh-claude-code.jpg) **Claude Code** —— 文章变成 AI 助手的回答，带工具调用 | ![飞书文档皮肤](docs/screenshots/zh-lark-docs.jpg) **飞书文档** —— 注意满屏平铺的署名水印 |
 | ![钉钉皮肤](docs/screenshots/zh-dingtalk.jpg) **钉钉** —— 连「已读 18/23」都演出来了 | ![WPS 皮肤](docs/screenshots/zh-wps.jpg) **WPS 文字** —— 全中文界面，会员皇冠都在 |
 | ![老板键](docs/screenshots/zh-boss-key.jpg) **老板键** —— 按 Esc 秒变《Q3 预算复盘.xlsx》 | ![手机版](docs/screenshots/zh-mobile.jpg) **手机也能摸** —— 重型界面自动收起 |
+| ![企业微信皮肤](docs/screenshots/zh-wecom.jpg) **企业微信** —— 首个社区贡献皮肤，感谢 [@Fmaverick](https://github.com/Fmaverick) | ![首页](docs/screenshots/zh-home.jpg) **首页** —— 本身就是一份 Word 文档，演出从第一秒开始 |
 
 ## 隐私（说实话版）
 
