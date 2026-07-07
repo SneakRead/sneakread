@@ -4,7 +4,7 @@
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/SneakRead/sneakread?style=flat&logo=github)](https://github.com/SneakRead/sneakread) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) · [sneakread.com](https://sneakread.com) · 100% client-side, no backend, no account · [中文](README.zh.md)
 
-Paste any public URL. SneakRead reads it through `r.jina.ai`, then renders it **full-screen as a real desktop app** — VS Code, Claude Code, Word, WPS, Google Docs, Notion, Slack, Lark/Feishu, DingTalk, Teams, Gmail, Excel, or Outlook — so reading looks like working. Brand: **SneakRead** globally, **摸鱼** in Chinese.
+Paste any public URL. SneakRead reads it through `r.jina.ai`, then renders it **full-screen as a real desktop app** — VS Code, Claude Code, Word, WPS, Google Docs, Notion, Slack, Lark/Feishu, DingTalk, WeCom, Teams, Gmail, Excel, or Outlook — so reading looks like working. Brand: **SneakRead** globally, **摸鱼** in Chinese.
 
 ![The BBC World Cup homepage, rendered as a Word document — live word count, real ribbon, real status bar](docs/screenshots/en-word.jpg)
 
@@ -23,7 +23,7 @@ The design goal is 以假乱真 (indistinguishable from the real thing), modelle
 
 The marketing pages are static, prerendered, and localized into 10 languages,
 yet **themselves disguised** — the landing IS the reader's Word home (a
-Getting-Started document with a live URL box and the 14-skin dock; every other
+Getting-Started document with a live URL box and the 15-skin dock; every other
 disguise is one click away as a full-screen live preview):
 
 - `/`, `/zh`, `/es`, `/hi`, `/ar`, `/pt`, `/ru`, `/ja`, `/fr`, `/de` — each static HTML with localized `<title>`/description, canonical, `hreflang` (+ `x-default`), Open Graph, and `FAQPage` JSON-LD. `sitemap.xml` + `robots.txt` included.
@@ -51,6 +51,7 @@ disguise is one click away as a full-screen live preview):
 | Slack | aubergine rail, channel list, message stream, composer | article as a thread of messages |
 | Lark / 飞书 | nav sidebar, chat list, group conversation with read receipts | article as group messages |
 | DingTalk / 钉钉 | icon rail, chat list, group chat with 已读 receipts and DING | article as group messages |
+| WeCom / 企业微信 | dark app rail, conversation list, group chat, workbench-style tools | article as group messages |
 | WPS 文字 | multi-tab strip, Chinese ribbon, A4 paper, member crown | clean article (Chinese chrome) |
 | Excel | ribbon, formula bar, real grid, sheet tabs | data table if present, else audit sheet |
 | Outlook | folders, message list, reading pane | article as an email |
@@ -109,7 +110,7 @@ pnpm build      # static site into dist/ (client + prerendered landing pages)
 SneakRead is built to be extended — **new disguises are the most welcome kind of
 contribution.** A skin is a [`SkinDefinition`](src/skins/types.ts) (id, label, app
 name, accent, its own `Logo`) plus a React component that renders a
-`DocumentRecord` as that app. Each of the fourteen built-in disguises lives in its
+`DocumentRecord` as that app. Each of the fifteen built-in disguises lives in its
 own [`src/skins/<name>/`](src/skins/) folder — component, `style.css`, and logo
 together — and auto-registers via `import.meta.glob`; copy
 [`src/skins/_template/`](src/skins/_template/) to start. See

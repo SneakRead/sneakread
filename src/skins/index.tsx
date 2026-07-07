@@ -30,6 +30,7 @@ const ORDER: SkinId[] = [
   'slack',
   'lark',
   'dingtalk',
+  'wecom',
   'wps',
   'excel',
   'outlook',

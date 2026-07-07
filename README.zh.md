@@ -4,7 +4,7 @@
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/SneakRead/sneakread?style=flat&logo=github)](https://github.com/SneakRead/sneakread) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) · [sneakread.com](https://sneakread.com) · 纯前端、无后端、无账号 · [English](README.md)
 
-粘贴任意公开网址，SneakRead 通过阅读器把它抓成正文，然后**全屏渲染成一个真实的桌面软件** —— VS Code、Claude Code、Word、WPS、Google Docs、Notion、Slack、飞书、钉钉、Teams、Gmail、Excel 或 Outlook —— 让「看网页」看起来像「在工作」。品牌：全球叫 **SneakRead**，中文叫 **摸鱼**。
+粘贴任意公开网址，SneakRead 通过阅读器把它抓成正文，然后**全屏渲染成一个真实的桌面软件** —— VS Code、Claude Code、Word、WPS、Google Docs、Notion、Slack、飞书、钉钉、企业微信、Teams、Gmail、Excel 或 Outlook —— 让「看网页」看起来像「在工作」。品牌：全球叫 **SneakRead**，中文叫 **摸鱼**。
 
 ![BBC 世界杯首页，此刻是一份 Word 文档——真功能区、真字数统计、真状态栏](docs/screenshots/zh-word.jpg)
 
@@ -31,6 +31,7 @@
 | Slack | 深紫侧栏、频道列表、消息流、输入框 | 文章拆成一串消息 |
 | 飞书 | 导航侧栏、会话列表、群聊（带已读回执） | 文章拆成群消息 |
 | 钉钉 | 图标导航、会话列表、群聊（已读 n/23 + DING） | 文章拆成群消息 |
+| 企业微信 | 深色应用栏、会话列表、群聊、工作台式工具入口 | 文章拆成群消息 |
 | WPS 文字 | 多标签页、全中文功能区、A4 纸、会员皇冠 | 干净的文章（中文界面） |
 | Excel | 功能区、公式栏、真实网格、工作表标签 | 有表格就渲染表格，否则渲染审计表 |
 | Outlook | 应用轨、文件夹、邮件列表、阅读窗格 | 文章当成一封邮件 |
@@ -40,7 +41,7 @@
 在 **文件 ▸ 伪装署名** 里填上你的名字，所有伪装都会「穿上」它——头像、Notion
 工作区名，以及飞书文档的企业风平铺水印。
 
-### 同一篇文章，十四副面孔
+### 同一篇文章，十五副面孔
 
 | | |
 | --- | --- |

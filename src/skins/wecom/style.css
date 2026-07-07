@@ -1,0 +1,712 @@
+/* WeCom / 企业微信 desktop light theme. Scoped: every rule lives under
+ * .wecom with wc- prefixed classes so the skin stays self-contained. */
+
+.stage > .wecom {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.wecom {
+  --wc-green: #07c160;
+  --wc-green-dark: #06ad56;
+  --wc-rail: #27364d;
+  --wc-rail-soft: #34445d;
+  --wc-text: #1f2329;
+  --wc-muted: #858b96;
+  --wc-line: #e6e8eb;
+  --wc-list: #f5f6f7;
+  --wc-chat-bg: #f1f2f4;
+  --wc-hover: #eceff2;
+  --wc-active: #e2e5ea;
+  --wc-own: #9eea6a;
+  --wc-font: "PingFang SC", -apple-system, BlinkMacSystemFont, "Hiragino Sans GB",
+    "Microsoft YaHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  background: var(--wc-chat-bg);
+  color: var(--wc-text);
+  font-family: var(--wc-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.wecom .wc-rail {
+  flex: 0 0 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--wc-rail);
+  color: rgba(255, 255, 255, 0.72);
+  padding: 16px 0 14px;
+}
+
+.wecom .wc-me {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 18px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #19cf77, #05a85d);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.wecom .wc-nav {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wecom .wc-nav-item {
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.wecom .wc-nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.wecom .wc-nav-item.is-active {
+  background: var(--wc-rail-soft);
+  color: #fff;
+}
+
+.wecom .wc-nav-ic {
+  position: relative;
+  display: inline-flex;
+}
+
+.wecom .wc-nav-label {
+  max-width: 58px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.1;
+}
+
+.wecom .wc-nav-badge {
+  position: absolute;
+  top: -7px;
+  left: 13px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #fa5151;
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+
+.wecom .wc-rail-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-top: auto;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.84);
+  cursor: pointer;
+}
+
+.wecom .wc-rail-plus:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.wecom .wc-list {
+  flex: 0 0 292px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--wc-list);
+  border-right: 1px solid #dfe2e6;
+}
+
+.wecom .wc-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 12px 10px;
+}
+
+.wecom .wc-search {
+  flex: 1;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: 4px;
+  background: #e9ebee;
+  color: #8b929d;
+  font-size: 13px;
+}
+
+.wecom .wc-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 4px;
+  background: #e9ebee;
+  color: #5f6672;
+  cursor: pointer;
+}
+
+.wecom .wc-add:hover {
+  background: #dde1e6;
+}
+
+.wecom .wc-list-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 0 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #c7ccd4 transparent;
+}
+
+.wecom .wc-chat {
+  width: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wecom .wc-chat:hover {
+  background: var(--wc-hover);
+}
+
+.wecom .wc-chat.is-active {
+  background: var(--wc-active);
+}
+
+.wecom .wc-chat-av {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.wecom .wc-chat-group {
+  background: linear-gradient(180deg, #19cf77, #05a85d);
+}
+
+.wecom .wc-chat-group-muted {
+  color: #fff;
+}
+
+.wecom .wc-chat-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border: 2px solid var(--wc-list);
+  border-radius: 9px;
+  background: #fa5151;
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 15px;
+  text-align: center;
+}
+
+.wecom .wc-chat-main {
+  flex: 1;
+  min-width: 0;
+  display: block;
+}
+
+.wecom .wc-chat-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.wecom .wc-chat-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wc-text);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.wecom .wc-chat-time {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: #a2a8b1;
+  font-size: 11px;
+}
+
+.wecom .wc-chat-preview {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #8a9099;
+  font-size: 12px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wecom .wc-tag {
+  flex: 0 0 auto;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 15px;
+}
+
+.wecom .wc-tag-bot {
+  background: #e7ebef;
+  color: #7c8490;
+}
+
+.wecom .wc-tag-official {
+  background: #e7f7ef;
+  color: #129c5f;
+}
+
+.wecom .wc-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--wc-chat-bg);
+}
+
+.wecom .wc-head {
+  flex: 0 0 auto;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px 0 22px;
+  background: #f7f8fa;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.wecom .wc-title {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.wecom .wc-title b {
+  min-width: 0;
+  overflow: hidden;
+  color: #1f2329;
+  font-size: 16px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wecom .wc-title span {
+  flex: 0 0 auto;
+  color: #8b929d;
+  font-size: 13px;
+}
+
+.wecom .wc-head-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: #5f6672;
+}
+
+.wecom .wc-head-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.wecom .wc-head-ic:hover {
+  color: #222832;
+}
+
+.wecom .wc-thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 24px 22px;
+  scrollbar-width: thin;
+  scrollbar-color: #c7ccd4 transparent;
+}
+
+.wecom .wc-switch {
+  margin: 0 0 10px;
+}
+
+.wecom .wc-date {
+  margin: 3px 0 16px;
+  color: #9aa1ab;
+  font-size: 12px;
+  text-align: center;
+}
+
+.wecom .wc-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.wecom .wc-msg-run {
+  display: contents;
+}
+
+.wecom .wc-avatar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.wecom .wc-avatar-assistant {
+  background: #fff;
+}
+
+.wecom .wc-avatar-ghost {
+  visibility: hidden;
+}
+
+.wecom .wc-avatar-me {
+  background: linear-gradient(180deg, #19cf77, #05a85d);
+}
+
+.wecom .wc-msg-col {
+  min-width: 0;
+  max-width: min(680px, 82%);
+}
+
+.wecom .wc-msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  color: var(--wc-muted);
+  font-size: 12px;
+}
+
+.wecom .wc-msg-name {
+  color: #626976;
+}
+
+.wecom .wc-msg-time {
+  color: #a4aab3;
+}
+
+.wecom .wc-bubble {
+  position: relative;
+  padding: 10px 13px;
+  border-radius: 5px;
+  color: var(--wc-text);
+  font-size: 14px;
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+.wecom .wc-bubble-in {
+  background: #fff;
+  border: 1px solid #e8ebef;
+}
+
+.wecom .wc-bubble-in::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: -6px;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-left: 1px solid #e8ebef;
+  border-bottom: 1px solid #e8ebef;
+  transform: rotate(45deg);
+}
+
+.wecom .wc-msg-own {
+  justify-content: flex-end;
+}
+
+.wecom .wc-msg-own .wc-msg-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.wecom .wc-bubble-own {
+  background: var(--wc-own);
+  border: 1px solid #8ddb5b;
+}
+
+.wecom .wc-bubble-own::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  right: -6px;
+  width: 10px;
+  height: 10px;
+  background: var(--wc-own);
+  border-top: 1px solid #8ddb5b;
+  border-right: 1px solid #8ddb5b;
+  transform: rotate(45deg);
+}
+
+.wecom .wc-post-title {
+  margin: 0 0 8px;
+  color: #1f2329;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.wecom .wc-md.markdown-body {
+  color: var(--wc-text);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.wecom .wc-md.markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.wecom .wc-md.markdown-body > :last-child {
+  margin-bottom: 0;
+}
+
+.wecom .wc-md.markdown-body h1,
+.wecom .wc-md.markdown-body h2,
+.wecom .wc-md.markdown-body h3,
+.wecom .wc-md.markdown-body h4 {
+  margin: 1.1em 0 0.42em;
+  color: #1f2329;
+  font-weight: 600;
+  line-height: 1.38;
+}
+
+.wecom .wc-md.markdown-body h1 {
+  font-size: 16px;
+}
+
+.wecom .wc-md.markdown-body h2 {
+  font-size: 15px;
+}
+
+.wecom .wc-md.markdown-body h3,
+.wecom .wc-md.markdown-body h4 {
+  font-size: 14px;
+}
+
+.wecom .wc-md.markdown-body a {
+  color: #1478d4;
+  text-decoration: none;
+}
+
+.wecom .wc-md.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+.wecom .wc-md.markdown-body img {
+  max-width: 100%;
+  margin: 10px auto;
+  border-radius: 5px;
+}
+
+.wecom .wc-md.markdown-body blockquote {
+  margin-inline: 0;
+  padding: 4px 12px;
+  border-left: 3px solid #cfd5dc;
+  background: #f5f6f7;
+  color: #626976;
+}
+
+.wecom .wc-md.markdown-body code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(31, 35, 41, 0.06);
+  font-size: 0.88em;
+}
+
+.wecom .wc-md.markdown-body pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 12px 14px;
+  border: 1px solid #e1e4e8;
+  border-radius: 5px;
+  background: #f7f8fa;
+}
+
+.wecom .wc-md.markdown-body pre code {
+  padding: 0;
+  background: transparent;
+}
+
+.wecom .wc-md.markdown-body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.wecom .wc-md.markdown-body th,
+.wecom .wc-md.markdown-body td {
+  padding: 6px 9px;
+  border: 1px solid #e1e4e8;
+  font-size: 13px;
+}
+
+.wecom .wc-md.markdown-body th {
+  background: #f4f6f8;
+}
+
+.wecom .wc-composer {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 150px;
+  background: #f7f8fa;
+  border-top: 1px solid #e0e3e7;
+}
+
+.wecom .wc-tools {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  height: 42px;
+  padding: 0 18px;
+  color: #5f6672;
+}
+
+.wecom .wc-tools svg {
+  cursor: pointer;
+}
+
+.wecom .wc-tools svg:hover {
+  color: #222832;
+}
+
+.wecom .wc-input {
+  flex: 1;
+  padding: 4px 18px;
+  color: #b0b6bf;
+  font-size: 14px;
+}
+
+.wecom .wc-compose-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 16px 12px;
+}
+
+.wecom .wc-send {
+  min-width: 68px;
+  height: 30px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--wc-green);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.wecom .wc-send:hover {
+  background: var(--wc-green-dark);
+}
+
+@media (max-width: 760px) {
+  .wecom .wc-rail,
+  .wecom .wc-list {
+    display: none !important;
+  }
+
+  .wecom .wc-head {
+    height: 52px;
+    padding: 0 12px 0 14px;
+  }
+
+  .wecom .wc-head-actions {
+    gap: 12px;
+  }
+
+  .wecom .wc-thread {
+    padding: 12px 12px 16px;
+  }
+
+  .wecom .wc-msg-col {
+    max-width: calc(100vw - 74px);
+  }
+
+  .wecom .wc-composer {
+    min-height: 112px;
+  }
+
+  .wecom .wc-tools {
+    gap: 13px;
+    overflow-x: auto;
+    padding: 0 12px;
+    scrollbar-width: none;
+  }
+
+  .wecom .wc-input {
+    padding-inline: 12px;
+  }
+}

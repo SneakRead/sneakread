@@ -14,6 +14,7 @@ export type SkinId =
   | 'notion'
   | 'claude-code'
   | 'dingtalk'
+  | 'wecom'
   | 'wps'
   | 'teams'
   | 'gmail'
