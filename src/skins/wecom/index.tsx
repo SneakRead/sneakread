@@ -42,20 +42,20 @@ export function WeComLogo({ size = 26, className }: { size?: number; className?:
       focusable="false"
     >
       <defs>
-        <linearGradient id="wecom-logo-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#0fbf83" />
-          <stop offset="1" stopColor="#05a85d" />
+        <linearGradient id="wecom-logo-blue" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#35a9ff" />
+          <stop offset="1" stopColor="#1688e8" />
         </linearGradient>
       </defs>
-      <rect width="48" height="48" rx="12" fill="url(#wecom-logo-grad)" />
+      <rect x="2" y="2" width="44" height="44" rx="11" fill="#fff" />
       <path
-        fill="#fff"
-        d="M22.8 12.2c-7 0-12.7 4.9-12.7 10.9 0 3.3 1.8 6.3 4.6 8.3l-1.1 4 4.6-2.4c1.4.5 2.9.8 4.6.8 7 0 12.7-4.9 12.7-10.8 0-6-5.7-10.8-12.7-10.8Zm-4.4 8.9a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4Zm8.6 0a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4Z"
+        fill="url(#wecom-logo-blue)"
+        d="M23.7 9.7c-8.5 0-15.4 5.8-15.4 13 0 3.9 2.1 7.5 5.4 9.8l-1.4 5.3 6.1-3.1c1.7.6 3.5.9 5.3.9 8.5 0 15.4-5.8 15.4-12.9 0-7.2-6.9-13-15.4-13Zm-4.9 10.5a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Zm9.8 0a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4Z"
       />
-      <path
-        fill="#dff8ec"
-        d="M34.8 24.4c4 1.2 6.8 4.3 6.8 8 0 2.5-1.3 4.7-3.4 6.2l.8 3-3.5-1.8c-1.1.4-2.3.6-3.5.6-4.5 0-8.2-2.8-9.3-6.5 6.3 0 11.4-4 12.1-9.5Z"
-      />
+      <circle cx="36.5" cy="25" r="3.4" fill="#4bd23e" />
+      <circle cx="31.6" cy="31.6" r="3.4" fill="#ffd12a" />
+      <circle cx="38.1" cy="34.6" r="3.4" fill="#ff6b1f" />
+      <circle cx="42.1" cy="29.2" r="3.4" fill="#29a8ff" />
     </svg>
   )
 }
@@ -382,7 +382,7 @@ const wecom: SkinDefinition = {
   label: 'WeCom',
   appName: 'WeCom',
   fileExtension: 'wecom',
-  accent: '#07c160',
+  accent: '#1688e8',
   faviconGlyph: 'W',
   i18nNames: {
     zh: { label: '企业微信', appName: '企业微信' },
