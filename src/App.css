@@ -124,8 +124,66 @@
 }
 
 /* ================================================================== *
- * Command palette — native VS Code quick-open styling
+ * Command palette — quick-open styled to match the ACTIVE disguise.
+ * Dark (VS Code native) only inside dark apps; light everywhere else,
+ * with the selection tinted to each app's brand accent.
  * ================================================================== */
+
+.stage {
+  --pal-bg: #252526;
+  --pal-fg: #cccccc;
+  --pal-border: #454545;
+  --pal-input-bg: #3c3c3c;
+  --pal-input-border: #1b1b1b;
+  --pal-input-fg: #eaeaea;
+  --pal-placeholder: #a6a6a6;
+  --pal-hint: #8a8a8a;
+  --pal-active-bg: #04395e;
+  --pal-active-fg: #ffffff;
+  --pal-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+  --pal-scrim: rgba(0, 0, 0, 0.28);
+  --pal-radius: 6px;
+}
+
+.skin-word,
+.skin-excel,
+.skin-outlook,
+.skin-docs,
+.skin-notion,
+.skin-lark,
+.skin-lark-docs,
+.skin-slack,
+.skin-dingtalk,
+.skin-wps,
+.skin-teams,
+.skin-gmail {
+  --pal-bg: #ffffff;
+  --pal-fg: #24292f;
+  --pal-border: #d8dde4;
+  --pal-input-bg: #f2f4f7;
+  --pal-input-border: #e4e8ee;
+  --pal-input-fg: #111827;
+  --pal-placeholder: #98a2b3;
+  --pal-hint: #8a93a0;
+  --pal-active-bg: #2b6cd4;
+  --pal-active-fg: #ffffff;
+  --pal-shadow: 0 16px 50px rgba(15, 23, 42, 0.22);
+  --pal-scrim: rgba(15, 23, 42, 0.16);
+  --pal-radius: 10px;
+}
+
+.skin-word { --pal-active-bg: #2b579a; }
+.skin-excel { --pal-active-bg: #107c41; }
+.skin-outlook { --pal-active-bg: #0f6cbd; }
+.skin-docs { --pal-active-bg: #1a73e8; }
+.skin-notion { --pal-active-bg: #f1f0ec; --pal-active-fg: #37352f; }
+.skin-lark,
+.skin-lark-docs,
+.skin-dingtalk { --pal-active-bg: #3370ff; }
+.skin-slack { --pal-active-bg: #611f69; }
+.skin-wps { --pal-active-bg: #e33e38; }
+.skin-teams { --pal-active-bg: #5b5fc7; }
+.skin-gmail { --pal-active-bg: #1a73e8; }
 
 .palette-overlay {
   position: fixed;
@@ -135,17 +193,17 @@
   justify-content: center;
   align-items: flex-start;
   padding-top: 8vh;
-  background: rgba(0, 0, 0, 0.28);
+  background: var(--pal-scrim);
 }
 
 .palette {
   width: min(640px, calc(100vw - 24px));
   overflow: hidden;
-  background: #252526;
-  border: 1px solid #454545;
-  border-radius: 6px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
-  color: #cccccc;
+  background: var(--pal-bg);
+  border: 1px solid var(--pal-border);
+  border-radius: var(--pal-radius);
+  box-shadow: var(--pal-shadow);
+  color: var(--pal-fg);
   font-size: 13px;
 }
 
@@ -153,20 +211,24 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
-  background: #3c3c3c;
-  border-bottom: 1px solid #1b1b1b;
-  color: #a6a6a6;
+  padding: 9px 12px;
+  background: var(--pal-input-bg);
+  border-bottom: 1px solid var(--pal-input-border);
+  color: var(--pal-placeholder);
 }
 
 .palette-input input {
   flex: 1;
   min-width: 0;
-  color: #eaeaea;
+  color: var(--pal-input-fg);
   background: transparent;
   border: 0;
   outline: 0;
   font-size: 13px;
+}
+
+.palette-input input::placeholder {
+  color: var(--pal-placeholder);
 }
 
 .palette-list {
@@ -182,17 +244,22 @@
   justify-content: space-between;
   gap: 12px;
   padding: 6px 10px;
-  color: #cccccc;
+  color: var(--pal-fg);
   background: transparent;
   border: 0;
-  border-radius: 3px;
+  border-radius: 4px;
   text-align: left;
   cursor: pointer;
 }
 
 .palette-row.is-active {
-  background: #04395e;
-  color: #ffffff;
+  background: var(--pal-active-bg);
+  color: var(--pal-active-fg);
+}
+
+.palette-row.is-active small {
+  color: inherit;
+  opacity: 0.75;
 }
 
 .palette-row span {
@@ -204,82 +271,167 @@
 
 .palette-row small {
   flex: 0 0 auto;
-  color: #8a8a8a;
+  color: var(--pal-hint);
   font-size: 11px;
 }
 
 .palette-empty {
   padding: 14px 12px;
-  color: #8a8a8a;
+  color: var(--pal-hint);
 }
 
-/* Loading — full-screen lock with clear feedback */
+/* Loading — an in-character "document opening" skeleton. Light by default,
+ * dark only for dark apps (VS Code / Claude Code). Never a black modal. */
 .load-overlay {
   position: fixed;
   inset: 0;
   z-index: 180;
-  display: grid;
-  place-items: center;
-  background: rgba(15, 18, 22, 0.82);
-  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  background: #edeff3;
 }
 
-.load-card {
-  width: min(440px, calc(100vw - 40px));
+.load-overlay.is-dark {
+  background: #1e1e1e;
+}
+
+.load-chrome {
+  flex: 0 0 auto;
+  height: 34px;
+}
+
+/* Indeterminate progress sweep — motion says "working" without a modal. */
+.load-progress {
+  flex: 0 0 auto;
+  height: 3px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.07);
+}
+
+.is-dark .load-progress {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.load-progress span {
+  display: block;
+  height: 100%;
+  width: 36%;
+  border-radius: 3px;
+  animation: load-sweep 1.15s ease-in-out infinite;
+}
+
+@keyframes load-sweep {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(380%);
+  }
+}
+
+.load-canvas {
+  flex: 1;
   display: grid;
   justify-items: center;
-  gap: 12px;
-  padding: 34px 30px;
-  text-align: center;
-  color: #e7e7e7;
+  align-items: start;
+  padding: 44px 24px 0;
+  overflow: hidden;
+}
+
+.load-doc {
+  width: min(820px, 100%);
+  min-height: 76vh;
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  padding: 72px 88px;
+  background: #ffffff;
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.16);
+}
+
+.is-dark .load-doc {
   background: #252526;
-  border: 1px solid #3d3d3d;
-  border-radius: 10px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
+}
+
+.load-bar {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e8ebf0 25%, #f5f7fa 45%, #e8ebf0 65%);
+  background-size: 400% 100%;
+  animation: load-shimmer 1.4s ease infinite;
+}
+
+.is-dark .load-bar {
+  background: linear-gradient(90deg, #2f3136 25%, #3a3d42 45%, #2f3136 65%);
+  background-size: 400% 100%;
+}
+
+.load-bar-title {
+  width: 55%;
+  height: 26px;
+  margin-bottom: 14px;
+}
+
+.load-gap {
+  height: 10px;
+}
+
+@keyframes load-shimmer {
+  to {
+    background-position: -135% 0;
+  }
+}
+
+.load-statusbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+  padding: 0 12px;
+  color: #5b6472;
+  background: #f3f4f6;
+  border-top: 1px solid #e2e5ea;
+  font-size: 12px;
+}
+
+.is-dark .load-statusbar {
+  color: #9da3ad;
+  background: #2d2d2d;
+  border-top-color: #3c3c3c;
 }
 
 .load-spinner {
-  width: 34px;
-  height: 34px;
-  border: 3px solid #3d4551;
-  border-top-color: #3794ff;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(120, 130, 145, 0.35);
+  border-top-color: currentColor;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
-.load-card strong {
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.load-url {
-  max-width: 100%;
+.load-status-text {
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #9cdcfe;
-  font: 12px var(--mono);
-}
-
-.load-card p {
-  margin: 0;
-  color: #a0a0a0;
-  font-size: 13px;
 }
 
 .load-cancel {
-  margin-top: 6px;
-  padding: 7px 20px;
-  color: #cccccc;
-  background: #3a3d41;
-  border: 1px solid #4d5157;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 3px 12px;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 11px;
+  opacity: 0.65;
   cursor: pointer;
 }
 
 .load-cancel:hover {
-  background: #45494e;
+  opacity: 1;
 }
 
 /* App menu (File ▸) */
@@ -940,59 +1092,100 @@
 
 /* ---- Home welcome inside a Word (light) page ---- */
 .welcome-paper {
-  max-width: 880px;
-  padding: 52px 60px 40px;
+  /* Close to Word's real 1-inch page margins — the paper itself carries the
+   * spacing, the nested .welcome contributes none (see below). */
+  padding: 64px 88px 48px;
+}
+/* .welcome's own 60/40 padding is for the standalone VS Code welcome; inside
+ * the paper it stacked into ~140px of dead whitespace above the fold. */
+.welcome-paper .welcome {
+  max-width: none;
+  padding: 0;
 }
 .welcome-paper .welcome-hero {
-  margin-bottom: 34px;
+  margin-bottom: 48px;
 }
 .welcome-paper .welcome-hero h1 {
   color: #201f1e;
 }
-.welcome-paper .welcome-dot {
-  color: #c8c6c4;
+.welcome-paper .welcome-brand {
+  color: #2b579a;
 }
 .welcome-paper .welcome-tagline {
-  color: #2b579a;
+  color: #201f1e;
 }
 .welcome-paper .welcome-sub {
   color: #605e5c;
+}
+.welcome-paper .welcome-proof {
+  color: #605e5c;
+  border-color: #e1dfdd;
+}
+.welcome-paper .welcome-proof:hover {
+  color: #2b579a;
+  border-color: #9db7e8;
 }
 .welcome-paper .welcome-open input {
   color: #201f1e;
   background: #ffffff;
   border-color: #c8c6c4;
+  border-radius: 4px;
+}
+.welcome-paper .welcome-open input::placeholder {
+  color: #a19f9d;
 }
 .welcome-paper .welcome-open input:focus {
   border-color: #2b579a;
+  box-shadow: 0 0 0 3px rgba(43, 87, 154, 0.15);
 }
 .welcome-paper .welcome-open button {
   background: #2b579a;
+  border-radius: 4px;
 }
 .welcome-paper .welcome-open button:hover {
   background: #1e3f72;
 }
+/* Sample pills are the fastest aha — dress them as Word links, not muted tags. */
 .welcome-paper .welcome-samples button,
 .welcome-paper .welcome-samples a {
-  color: #323130;
-  background: #faf9f8;
-  border-color: #d2d0ce;
+  color: #2b579a;
+  background: #f3f7fd;
+  border-color: #c7d7ef;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 7px 13px;
+}
+.welcome-paper .welcome-samples button::after,
+.welcome-paper .welcome-samples a::after {
+  content: ' ↗';
+  font-size: 11px;
+  opacity: 0.6;
 }
 .welcome-paper .welcome-samples button:hover,
 .welcome-paper .welcome-samples a:hover {
-  background: #eef2f8;
+  background: #e8f0fb;
   color: #1e3f72;
   border-color: #2b579a;
+}
+/* The ⌘K tip as an author's note — a Word block quote, not a footer stripe. */
+.welcome-paper .welcome-tip {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border-top: 0;
+  border-left: 3px solid #2b579a;
+  background: #f8fafd;
+  color: #605e5c;
+  font-size: 13px;
 }
 .welcome-paper .welcome-section h2 {
   color: #201f1e;
 }
 .welcome-paper .welcome-features li,
-.welcome-paper .welcome-faq dd {
+.welcome-paper .welcome-faq p {
   color: #444746;
 }
 .welcome-paper .welcome-features strong,
-.welcome-paper .welcome-faq dt {
+.welcome-paper .welcome-faq h3 {
   color: #201f1e;
 }
 .welcome-paper .welcome-tip {
@@ -1020,17 +1213,18 @@
 }
 .welcome-paper .welcome-app:hover {
   background: #eef2f8;
-  border-color: #2b579a;
+  border-color: #9db7e8;
+  box-shadow: 0 2px 8px rgba(43, 87, 154, 0.18);
 }
 .welcome-paper .welcome-app.is-active {
-  border-color: #2b579a;
   background: #eaf1fb;
+  box-shadow: inset 0 0 0 1px #2b579a;
+  border-color: #2b579a;
 }
-.welcome-paper .welcome-app.is-featured {
-  border-color: #9db7e8;
+.welcome-paper .welcome-langs a {
+  color: #8a8886;
 }
-.welcome-paper .welcome-app-tag {
-  background: #e3edfb;
+.welcome-paper .welcome-langs a:hover {
   color: #2b579a;
 }
 
@@ -1342,17 +1536,19 @@
   margin-top: 10px;
 }
 
+/* ⌘K tip: an inline note right under the samples, not a buried footer rule. */
 .welcome-tip {
-  margin-top: 36px;
-  padding-top: 20px;
-  border-top: 1px solid #303030;
-  color: #8a8a8a;
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid #3794ff;
+  background: rgba(55, 148, 255, 0.08);
+  color: #9aa0a6;
   font-size: 13px;
 }
 
 /* Home hero: prominent URL box + samples */
 .welcome-hero {
-  margin-bottom: 44px;
+  margin-bottom: 48px;
 }
 
 .welcome-hero h1 {
@@ -1360,16 +1556,48 @@
   font-size: 38px;
   font-weight: 700;
   letter-spacing: -0.5px;
+  line-height: 1.15;
+  text-wrap: balance;
   color: #ffffff;
 }
 
+/* Brand demoted to an eyebrow; the tagline IS the headline. Same h1 text for
+ * SEO — only the visual hierarchy changes. */
+.welcome-brand {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #4daafc;
+}
+
 .welcome-dot {
-  color: #6a6a6a;
+  display: none;
 }
 
 .welcome-tagline {
-  color: #9cdcfe;
-  font-weight: 600;
+  color: #e7e7e7;
+  font-weight: 700;
+}
+
+/* Quiet social proof next to the pitch — trust before the first click. */
+.welcome-proof {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 18px;
+  padding: 4px 12px;
+  color: #9aa0a6;
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.welcome-proof:hover {
+  color: #e7e7e7;
+  border-color: #6a6a6a;
 }
 
 .welcome-sub {
@@ -1443,80 +1671,79 @@
   color: #ffffff;
 }
 
+/* The disguise dock: icon-first tiles, all 14 visible in two rows. This is the
+ * product's best demo — one click morphs the whole screen. */
 .welcome-apps {
   max-width: 760px;
-  margin-top: 22px;
+  margin-top: 40px;
 }
 .welcome-apps-title {
-  margin-bottom: 10px;
-  font-size: 13px;
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   color: #9aa0a6;
 }
 .welcome-apps-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
   gap: 8px;
 }
 .welcome-app {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 12px 6px 10px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.03);
   color: #d4d4d4;
   font: inherit;
-  font-size: 14px;
-  text-align: left;
+  font-size: 12px;
+  text-align: center;
   cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease,
+    border-color 0.12s ease;
 }
 .welcome-app:hover {
   background: rgba(255, 255, 255, 0.07);
   border-color: rgba(255, 255, 255, 0.25);
-}
-.welcome-app.is-featured {
-  border-color: rgba(76, 139, 245, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 .welcome-app.is-active {
   border-color: #4c8bf5;
   background: rgba(76, 139, 245, 0.14);
 }
 .welcome-app-name {
-  flex: 1;
-  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.welcome-app-tag {
-  flex: 0 0 auto;
-  padding: 1px 5px;
-  border-radius: 5px;
-  background: rgba(76, 139, 245, 0.2);
-  color: #7fb0ff;
-  font-size: 9px;
-  white-space: nowrap;
-}
 
 .welcome-section {
-  margin-bottom: 34px;
+  margin-bottom: 40px;
 }
 
 .welcome-section h2 {
-  margin: 0 0 14px;
+  margin: 0 0 16px;
   font-size: 20px;
   font-weight: 600;
   color: #e7e7e7;
 }
 
+/* Features as a 2×2 scan grid — a different shape from the FAQ list below. */
 .welcome-features {
   max-width: 720px;
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 28px;
 }
 
 .welcome-features li {
@@ -1526,6 +1753,8 @@
 }
 
 .welcome-features strong {
+  display: block;
+  margin-bottom: 2px;
   color: #ffffff;
 }
 
@@ -1534,14 +1763,14 @@
   margin: 0;
 }
 
-.welcome-faq dt {
-  margin-top: 14px;
+.welcome-faq h3 {
+  margin: 14px 0 0;
   color: #e7e7e7;
   font-size: 15px;
   font-weight: 600;
 }
 
-.welcome-faq dd {
+.welcome-faq p {
   margin: 4px 0 0;
   color: #a0a0a0;
   font-size: 14px;
@@ -1584,22 +1813,23 @@
   color: #7a7a7a;
 }
 
+/* Language links stay for SEO but leave the spotlight: quiet, one footer-grade
+ * row, no divider of their own. */
 .welcome-langs {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 14px;
-  padding-top: 20px;
-  margin-top: 6px;
-  border-top: 1px solid #303030;
+  margin-top: 28px;
 }
 
 .welcome-langs a {
-  color: #4daafc;
-  font-size: 13px;
+  color: #7a7a7a;
+  font-size: 12px;
   text-decoration: none;
 }
 
 .welcome-langs a:hover {
+  color: #4daafc;
   text-decoration: underline;
 }
 
@@ -1621,6 +1851,9 @@ kbd {
 .msapp {
   height: 100%;
   display: grid;
+  /* Explicit single column: without it the implicit track sizes to the ribbon
+   * tabs' min-content (~700px) and the whole frame overflows small viewports. */
+  grid-template-columns: minmax(0, 1fr);
   background: #ffffff;
   font-family: 'Segoe UI', var(--sans);
 }
@@ -1639,6 +1872,8 @@ kbd {
   align-items: center;
   gap: 10px;
   padding: 0 0 0 10px;
+  min-width: 0;
+  overflow: hidden;
   color: #ffffff;
 }
 
@@ -3320,6 +3555,12 @@ kbd {
   border-block-start: 1px solid #2b3442;
   transform: rotate(45deg);
 }
+/* Callout flipped above a bottom-edge anchor: arrow moves to the bottom side. */
+.coach-callout.is-flipped .coach-arrow {
+  top: auto;
+  bottom: -6px;
+  transform: rotate(225deg);
+}
 .coach-got {
   border: 0;
   background: #2b6fff;
@@ -3366,9 +3607,21 @@ kbd {
   min-height: 0;
 }
 
+/* Enterprise-style viewer watermark (Feishu docs), shown only when the user
+ * set a display name. Above the content, below menus/palette. */
+.ld-watermark {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background-repeat: repeat;
+  pointer-events: none;
+}
+
 /* ================================================================== *
- * Content-top skin switcher — the one non-native affordance, kept small
- * and muted so it reads as a quiet link row at the top of the content.
+ * Content-top skin switcher — the one non-native affordance. Invisible
+ * until the pointer sweeps over it (or it holds focus), so the disguise
+ * shows zero foreign chrome at rest; File ▸ and ⌘K remain the primary
+ * ways to switch.
  * ================================================================== */
 .skin-switch {
   display: flex;
@@ -3379,6 +3632,13 @@ kbd {
   font-size: 12px;
   line-height: 1.5;
   color: #9aa0a6;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.skin-switch:hover,
+.skin-switch:focus-within {
+  opacity: 1;
 }
 .skin-switch-link {
   padding: 0;
@@ -3964,6 +4224,7 @@ kbd {
   --fs-fill: #f5f6f7;
   --fs-font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -5292,6 +5553,13 @@ kbd {
   height: 40px;
   border-radius: 9px;
 }
+/* Follow-up messages from the same sender keep the avatar column, invisibly. */
+.lark .lk-msg-av-ghost {
+  visibility: hidden;
+}
+.lark .lk-msg + .lk-msg:not(.lk-msg-own) {
+  margin-top: -10px;
+}
 .lark .lk-msg-col {
   min-width: 0;
   max-width: 760px;
@@ -5489,4 +5757,148 @@ kbd {
 }
 .notion .nt-peek-more:hover {
   background: var(--nt-hover);
+}
+
+/* ================================================================== *
+ * Mobile — shared links get opened on phones constantly. Collapse the
+ * heavy desktop chrome into a readable, lightly-disguised layout so
+ * the first impression on a phone is an article, not a broken ribbon.
+ * ================================================================== */
+@media (max-width: 760px) {
+  /* Office family: keep the colored title bar + tab strip, drop the deep ribbon */
+  .ms-ribbon,
+  .word-ruler,
+  .ms-search,
+  .ms-qat .ms-autosave,
+  .ms-doctitle-sub {
+    display: none !important;
+  }
+  .paper-canvas {
+    padding: 10px 0;
+  }
+  .paper {
+    padding: 26px 20px !important;
+  }
+
+  /* VS Code: the editor is the disguise; side rails don't fit */
+  .vsc-side,
+  .vsc-activity,
+  .vsc-panel,
+  .vsc-breadcrumb {
+    display: none !important;
+  }
+
+  /* Google Docs: toolbar scrolls instead of wrapping */
+  .gdocs-toolbar {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  /* Notion: keep only the opened page (peek panel) */
+  .nt-side,
+  .nt-db {
+    display: none !important;
+  }
+
+  /* Lark / DingTalk / Slack / Teams: conversation only */
+  .lk-nav,
+  .lk-list,
+  .dt-rail,
+  .dt-list,
+  .sl-rail,
+  .sl-side,
+  .tm-rail,
+  .tm-side {
+    display: none !important;
+  }
+
+  /* Lark Docs: hide the outline rail */
+  .ld-outline {
+    display: none !important;
+  }
+
+  /* Outlook: reading pane only */
+  .ol-rail,
+  .ol-folders,
+  .ol-list,
+  .ol-ribbon,
+  .ol-tabs {
+    display: none !important;
+  }
+
+  /* Gmail: message only */
+  .gm-nav,
+  .gm-panel,
+  .gm-compose {
+    display: none !important;
+  }
+
+  /* WPS: multi-tab strip + slim canvas, no ribbon/ruler/side tools */
+  .wps-ribbon,
+  .wps-ruler,
+  .wps-sidetools {
+    display: none !important;
+  }
+
+  /* Excel article view: the reading pane IS the content */
+  .excel-body .excel-grid-host {
+    display: none !important;
+  }
+  .excel-body .excel-read {
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+  }
+
+  /* Office chrome that can't shrink: tab strip scrolls, title-bar extras go */
+  .ms-ribbon-tabs {
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .ms-tabs-right,
+  .ms-autosave,
+  .win-buttons {
+    display: none !important;
+  }
+
+  /* Home welcome + loading skeleton */
+  .welcome {
+    padding: 24px 12px;
+  }
+  .welcome-paper {
+    padding: 36px 22px 32px !important;
+  }
+  .welcome-apps-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  .welcome-app {
+    padding: 10px 4px 8px;
+    font-size: 11px;
+  }
+  .welcome-app svg {
+    width: 26px;
+    height: 26px;
+  }
+  .welcome-features {
+    grid-template-columns: 1fr !important;
+  }
+  .welcome-hero h1 {
+    font-size: 26px;
+  }
+  .load-doc {
+    padding: 40px 26px;
+    min-height: 60vh;
+  }
+}
+
+/* On the home previews the switcher is the way back — keep it visible there;
+ * inside real documents it stays hover-only (zero foreign chrome at rest). */
+.home-stage .skin-switch {
+  opacity: 1;
+}
+
+/* Every real-menu mount across every skin at least hints it's clickable. */
+[data-appmenu] {
+  cursor: pointer;
 }

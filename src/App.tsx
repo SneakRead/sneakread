@@ -52,15 +52,16 @@ import {
   inferProjectName,
   safeHttpUrl,
 } from './core/content'
+import { getAlias, setAlias } from './core/alias'
+import { initAnalytics, track, trackPageView, bucket } from './core/analytics'
 import {
   WordFrame,
 } from './skins/shared'
 import { ExcelBudgetSkin } from './skins/excel'
 import { VscMenuBar, ActivityBar } from './skins/vscode'
-import { getSkin, skins, skinById } from './skins'
+import { getSkin, skins, skinById, SkinBrandLogo } from './skins'
 import { SkinControlsProvider } from './skins/controls'
 import { skinLabel, skinAppName } from './skins/labels'
-import { SkinLogo } from './logos'
 
 /* ------------------------------------------------------------------ *
  * URL / reader plumbing
@@ -68,11 +69,11 @@ import { SkinLogo } from './logos'
 
 function normalizeUrl(input: string) {
   const trimmed = input.trim()
-  if (!trimmed) throw new Error('Enter a URL')
+  if (!trimmed) throw new Error(t('errEnterUrl'))
   const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
   const url = new URL(withProtocol)
   if (!['http:', 'https:'].includes(url.protocol)) {
-    throw new Error('Only http and https URLs are supported')
+    throw new Error(t('errHttpOnly'))
   }
   return url.toString()
 }
@@ -157,21 +158,91 @@ function parseReaderResponse(raw: string, fallbackUrl: string): ReaderDoc {
 }
 
 function cleanReaderMarkdown(markdown: string) {
-  const unwrapped = markdown
+  let unwrapped = markdown
     // Some readers (Firecrawl on <br>-heavy pages like paulgraham.com) leave raw
     // <br> tags that react-markdown renders as literal text. A run of 2+ is a
     // paragraph break; a single one is a soft line-wrap → rejoin with a space.
     .replace(/\s*(?:<br\s*\/?>\s*){2,}/gi, '\n\n')
     .replace(/\s*<br\s*\/?>\s*/gi, ' ')
+    // Jina swaps inline data-URI images for a literal placeholder token; the
+    // whole image is noise once the data is gone.
+    .replace(/!?\\?\[[^\]]*\\?\]\(<?Base64-Image-Removed>?\)/gi, '')
+  // A markdown link whose text got split across a blank line never parses —
+  // react-markdown renders a literal "…text.](url)". Rejoin the pieces into
+  // one inline link. Run a few passes: long teasers can span several breaks.
+  for (let pass = 0; pass < 3; pass++) {
+    const joined = unwrapped.replace(
+      /\[([^\][\n]{1,240})\n{2,}([^\][\n]{0,240}\]\()/g,
+      '[$1 $2',
+    )
+    if (joined === unwrapped) break
+    unwrapped = joined
+  }
+  const rawLines = stripEscapeArtifacts(unwrapped.split('\n'))
+  // Boilerplate like "domain.com is blocked" arrives with a blank line between
+  // the domain and the error code — compare against the next *solid* line.
+  const nextSolid = (index: number) => {
+    for (let j = index + 1; j < rawLines.length; j++) {
+      if (rawLines[j].trim()) return rawLines[j]
+    }
+    return ''
+  }
   const lines = stripLeadingLayoutTable(
-    unwrapped
-      .split('\n')
-      .filter(
-        (line, index, allLines) =>
-          !isReaderBoilerplateLine(line, allLines[index + 1]) && !isSpacerTableRow(line),
+    stripAppPromoBlocks(
+      rawLines.filter(
+        (line, index) => !isReaderBoilerplateLine(line, nextSolid(index)) && !isSpacerTableRow(line),
       ),
+    ),
   )
   return unwrapProseCell(trimLeadingNav(lines)).join('\n').replace(/\n{4,}/g, '\n\n\n').trim()
+}
+
+// Jina/Firecrawl escape stray characters and line breaks with backslashes that
+// react-markdown then shows literally ("foo\ \ bar", "ERR\_BLOCKED"). Clean them
+// outside code fences only, so shell continuations in real code survive.
+function stripEscapeArtifacts(lines: string[]) {
+  let fence: { ch: string; len: number } | null = null
+  return lines.map((line) => {
+    const marker = line.match(/^\s*(`{3,}|~{3,})/)
+    if (marker) {
+      const ch = marker[1][0]
+      const len = marker[1].length
+      if (fence === null) fence = { ch, len }
+      else if (fence.ch === ch && len >= fence.len) fence = null
+      return line
+    }
+    if (fence) return line
+    return line
+      .replace(/^\\+\s+/, '') // leading "\ " artifacts
+      .replace(/\s\\+(\s)/g, '$1') // stray backslashes floating between words
+      .replace(/\s*\\+$/, '') // trailing hard-break backslashes
+  })
+}
+
+// "Scan to download our app" banners: drop the promo line AND the bare QR-code
+// image right above it, so a news homepage doesn't open on a giant QR code.
+function isAppPromoLine(line: string) {
+  const t = readerBoilerplateCandidate(line)
+  return (
+    /^扫[一描码][描码]?\s*(下载|安装|关注)?/.test(t) ||
+    /^(扫码|扫描)(下载|安装|关注)/.test(t) ||
+    /^(下载|打开)\s*(APP|App|客户端|应用)/.test(t) ||
+    /^立即(下载|体验|打开)$/.test(t) ||
+    /^(Download|Get|Open)\s+(our\s+|the\s+)?app\b/i.test(t)
+  )
+}
+
+function stripAppPromoBlocks(lines: string[]) {
+  const bareImage = /^\s*\[?!\[[^\]]*\]\([^)]+\)\]?(\([^)]+\))?\s*$/
+  const drop = new Set<number>()
+  lines.forEach((line, index) => {
+    if (!isAppPromoLine(line)) return
+    drop.add(index)
+    let j = index - 1
+    while (j >= 0 && !lines[j].trim()) j--
+    if (j >= 0 && bareImage.test(lines[j])) drop.add(j)
+  })
+  return drop.size ? lines.filter((_, index) => !drop.has(index)) : lines
 }
 
 // A pipe row whose every cell is empty, a separator, or a bare (linked) image —
@@ -260,6 +331,9 @@ function readerBoilerplateCandidate(line = '') {
   return line
     .trim()
     .replace(/\\+\s*$/, '')
+    // Un-escape reader backslash-escapes ("ERR\_BLOCKED\_BY\_CLIENT") so the
+    // boilerplate patterns below match what the page actually said.
+    .replace(/\\([_*[\]()#`~<>.-])/g, '$1')
     .replace(/^#{1,6}\s*/, '')
     .replace(/^[•·☑✓\-*]\s*/, '')
     .trim()
@@ -268,6 +342,9 @@ function readerBoilerplateCandidate(line = '') {
 function isReaderBoilerplateLine(line: string, nextLine = '') {
   const clean = readerBoilerplateCandidate(line)
   if (!clean) return false
+  // Video-player seek buttons scraped as bare "+10 / -10 / 10" lines. Only the
+  // raw line (no list prefix) counts, so "- 10" in a real list survives.
+  if (/^[+-]?\d{1,3}$/.test(line.trim())) return true
   const nextClean = readerBoilerplateCandidate(nextLine)
   const blockedWidgetDomain =
     /^([a-z0-9-]+\.)+[a-z]{2,}$/i.test(clean) &&
@@ -289,6 +366,19 @@ function isReaderBoilerplateLine(line: string, nextLine = '') {
     /^ADVERTISEMENT$/i,
     /^Listen to this article$/i,
     /^Share$/i,
+    // Embedded video-player chrome (BBC & friends leak the whole control strip).
+    /^(LIVE|START|PLAY|PAUSE|REPLAY)$/,
+    /^Auto-?play$/i,
+    /^Play next item automatically$/i,
+    /^Video quality$/i,
+    /^(Highest|Lowest|Auto(matic)?) available$/i,
+    /^(Captions?|Subtitles?)( off| on)?$/i,
+    /^(Enter|Exit) fullscreen$/i,
+    /^(Mute|Unmute|Rewind|Fast forward)$/i,
+    /^Playback (speed|rate)$/i,
+    /^\d+(\.\d+)?x$/,
+    /^\d{1,2}:\d{2}(:\d{2})?$/,
+    /^(Duration|Elapsed( time)?|Remaining( time)?)[:.]?$/i,
     // Blocked third-party widgets (ad-blocker / extension) leaking into scrapes.
     /^[a-z0-9.-]+\.[a-z]{2,}\s+is blocked$/i,
     /^is blocked$/i,
@@ -473,16 +563,25 @@ const readerSourceKey = 'sneakread-reader-source'
 const readerCooldownKey = 'sneakread-reader-cd'
 const readerGoodKey = 'sneakread-reader-good'
 
-const jinaHeaders: Record<string, string> = {
-  'X-No-Cache': 'true',
+// Jina's cache is the fast path (a cached page returns in ~1-2s; a forced
+// fresh render of a heavy news page can take 10-20s AND burns rate-limit
+// budget). Casual reading is fine with minutes-old content — only an explicit
+// user Refresh bypasses the cache.
+const jinaHeaders = (noCache: boolean): Record<string, string> => ({
+  ...(noCache ? { 'X-No-Cache': 'true' } : {}),
   'X-Respond-With': 'markdown+frontmatter',
   'X-Retain-Images': 'all',
   'X-Retain-Links': 'all',
   'X-Timeout': '20',
-}
+})
 
-async function readViaJina(base: string, url: string, signal: AbortSignal): Promise<ReaderDoc> {
-  const res = await fetch(base + url, { headers: jinaHeaders, signal })
+async function readViaJina(
+  base: string,
+  url: string,
+  signal: AbortSignal,
+  noCache: boolean,
+): Promise<ReaderDoc> {
+  const res = await fetch(base + url, { headers: jinaHeaders(noCache), signal })
   const text = await res.text()
   if (!res.ok) throw new Error(text.slice(0, 160) || `Reader ${res.status}`)
   const parsed = parseReaderResponse(text, url)
@@ -490,7 +589,11 @@ async function readViaJina(base: string, url: string, signal: AbortSignal): Prom
   return parsed
 }
 
-async function readViaFirecrawl(url: string, signal: AbortSignal): Promise<ReaderDoc> {
+async function readViaFirecrawl(
+  url: string,
+  signal: AbortSignal,
+  _noCache: boolean,
+): Promise<ReaderDoc> {
   const res = await fetch('https://api.firecrawl.dev/v2/scrape', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -519,10 +622,22 @@ async function readViaFirecrawl(url: string, signal: AbortSignal): Promise<Reade
 
 const providers: Record<
   ProviderId,
-  { label: string; timeout: number; read: (u: string, s: AbortSignal) => Promise<ReaderDoc> }
+  {
+    label: string
+    timeout: number
+    read: (u: string, s: AbortSignal, noCache: boolean) => Promise<ReaderDoc>
+  }
 > = {
-  jinacn: { label: 'Jina CN', timeout: 8000, read: (u, s) => readViaJina('https://r.jinaai.cn/', u, s) },
-  jina: { label: 'Jina Global', timeout: 8000, read: (u, s) => readViaJina('https://r.jina.ai/', u, s) },
+  jinacn: {
+    label: 'Jina CN',
+    timeout: 8000,
+    read: (u, s, nc) => readViaJina('https://r.jinaai.cn/', u, s, nc),
+  },
+  jina: {
+    label: 'Jina Global',
+    timeout: 8000,
+    read: (u, s, nc) => readViaJina('https://r.jina.ai/', u, s, nc),
+  },
   firecrawl: { label: 'Firecrawl', timeout: 18000, read: readViaFirecrawl },
 }
 
@@ -590,41 +705,126 @@ function rememberReaderFail(id: ProviderId) {
   }
 }
 
+// Hedged fallback (instead of strictly serial tries): the preferred provider
+// starts immediately; the next one launches after a short head start — or the
+// instant the previous one fails — and the first success wins while the rest
+// are aborted. Worst-case latency drops from the sum of all timeouts (~34s)
+// to the staggered-chain bound (~13-22s), and a slow or rate-limited provider
+// no longer holds the whole read hostage for its full timeout.
+const HEDGE_DELAY_MS = 2200
+
 async function readWithFallback(
   url: string,
   outerSignal: AbortSignal,
   override: string,
+  noCache = false,
 ): Promise<ReaderDoc> {
   const order = getProviderOrder(override)
-  let lastError: unknown
-  for (const id of order) {
-    if (outerSignal.aborted) throw new DOMException('aborted', 'AbortError')
-    const ctrl = new AbortController()
-    const onAbort = () => ctrl.abort()
-    outerSignal.addEventListener('abort', onAbort)
-    const timer = window.setTimeout(() => ctrl.abort(), providers[id].timeout)
-    try {
-      const doc = await providers[id].read(url, ctrl.signal)
+  return new Promise<ReaderDoc>((resolve, reject) => {
+    const controllers: AbortController[] = []
+    const errors: unknown[] = []
+    let started = 0
+    let failed = 0
+    let settled = false
+    let hedgeTimer: number | undefined
+
+    const abortAll = () => controllers.forEach((ctrl) => ctrl.abort())
+
+    const finishSuccess = (id: ProviderId, doc: ReaderDoc) => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(hedgeTimer)
       rememberReaderGood(id)
-      return doc
-    } catch (error) {
-      lastError = error
-      if (!outerSignal.aborted) rememberReaderFail(id)
-    } finally {
-      window.clearTimeout(timer)
-      outerSignal.removeEventListener('abort', onAbort)
+      abortAll()
+      resolve(doc)
     }
-    if (outerSignal.aborted) throw new DOMException('aborted', 'AbortError')
-  }
-  throw lastError instanceof Error ? lastError : new Error('All readers failed')
+
+    const finishFailure = () => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(hedgeTimer)
+      // Prefer a real reader error over the generic aborts our own timeouts throw.
+      const meaningful = errors.find(
+        (error) => !(error instanceof DOMException && error.name === 'AbortError'),
+      )
+      reject(meaningful ?? errors[errors.length - 1] ?? new Error('All readers failed'))
+    }
+
+    const launchNext = () => {
+      if (settled || started >= order.length) return
+      const id = order[started]
+      started += 1
+      const ctrl = new AbortController()
+      controllers.push(ctrl)
+      const onOuterAbort = () => ctrl.abort()
+      outerSignal.addEventListener('abort', onOuterAbort)
+      const timeoutTimer = window.setTimeout(() => ctrl.abort(), providers[id].timeout)
+      if (started < order.length) {
+        hedgeTimer = window.setTimeout(launchNext, HEDGE_DELAY_MS)
+      }
+      providers[id]
+        .read(url, ctrl.signal, noCache)
+        .then((doc) => finishSuccess(id, doc))
+        .catch((error) => {
+          errors.push(error)
+          if (!outerSignal.aborted && !settled) rememberReaderFail(id)
+          failed += 1
+          if (outerSignal.aborted || failed >= order.length) {
+            finishFailure()
+            return
+          }
+          // A dead provider shouldn't make the next one wait out the hedge delay.
+          window.clearTimeout(hedgeTimer)
+          launchNext()
+        })
+        .finally(() => {
+          window.clearTimeout(timeoutTimer)
+          outerSignal.removeEventListener('abort', onOuterAbort)
+        })
+    }
+
+    if (outerSignal.aborted) {
+      reject(new DOMException('aborted', 'AbortError'))
+      return
+    }
+    outerSignal.addEventListener('abort', abortAll, { once: true })
+    launchNext()
+  })
+}
+
+// Classify internal reader errors (always English, see assertHealthyReaderDoc)
+// once — the class drives both the localized message and the analytics label.
+type ReaderErrorKind = 'timeout' | 'empty' | 'thin' | 'blocked' | 'input' | 'other'
+
+function readerErrorKind(loadError: unknown): ReaderErrorKind {
+  if (loadError instanceof DOMException && loadError.name === 'AbortError') return 'timeout'
+  const raw = loadError instanceof Error ? loadError.message : ''
+  if (/timed? ?out/i.test(raw)) return 'timeout'
+  if (/no readable content/i.test(raw)) return 'empty'
+  if (/too little readable/i.test(raw)) return 'thin'
+  if (/instead of article content/i.test(raw)) return 'blocked'
+  if (raw === t('errEnterUrl') || raw === t('errHttpOnly')) return 'input'
+  return 'other'
 }
 
 function loadErrorMessage(loadError: unknown) {
-  if (loadError instanceof DOMException && loadError.name === 'AbortError') {
-    return 'Reader timed out before returning readable content'
+  const raw = loadError instanceof Error ? loadError.message : ''
+  if (raw) console.warn('[reader]', raw)
+  switch (readerErrorKind(loadError)) {
+    case 'timeout':
+      return t('errTimeout')
+    case 'empty':
+      return t('errNoContent')
+    case 'thin':
+      return t('errTooLittle')
+    case 'blocked':
+      return t('errBlocked')
+    case 'input':
+      // Locale-produced messages (normalizeUrl) pass through untouched.
+      return raw
+    default:
+      return t('errUnknown')
   }
-  if (loadError instanceof Error) return loadError.message
-  return 'Unknown error while reading the page'
 }
 
 /* ------------------------------------------------------------------ *
@@ -671,11 +871,14 @@ function inferPageKind(url: string, markdown: string, title = ''): PageKind {
 }
 
 function makeFileName(title: string, skin: SkinId) {
-  const clean = title
+  let clean = title
     .replace(/[\\/:*?"<>|#]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .slice(0, 60)
+  if (clean.length > 60) {
+    // Cut at a word boundary — a filename chopped mid-word reads as fake.
+    clean = clean.slice(0, 60).replace(/\s+\S*$/, '')
+  }
   const base = clean || 'Notes'
   return `${base}.${skinById(skin).extension}`
 }
@@ -685,34 +888,95 @@ function upsertRecord(records: DocumentRecord[], record: DocumentRecord) {
 }
 
 function createPanicDocument(now: string): DocumentRecord {
-  const markdown = [
-    '# Q3 Budget Review',
-    '',
-    '| Department | Forecast | Actual | Variance |',
-    '| --- | ---: | ---: | ---: |',
-    '| Platform | 124000 | 119400 | -4600 |',
-    '| Growth | 98000 | 101200 | 3200 |',
-    '| Support | 42000 | 40900 | -1100 |',
-    '| Research | 36000 | 37200 | 1200 |',
-    '',
-    '## Notes',
-    '- Forecast remains within the approved quarterly range.',
-    '- Vendor renewals are pending finance review.',
-    '- No external distribution until numbers are reconciled.',
-  ].join('\n')
+  // The boss sheet speaks the boss's language — a Chinese office running an
+  // English-only budget is its own tell.
+  const zh = lang === 'zh'
+  const markdown = (zh
+    ? [
+        '# Q3 预算复盘',
+        '',
+        '| 部门 | 预算 | 实际 | 差异 |',
+        '| --- | ---: | ---: | ---: |',
+        '| 平台 | 124000 | 119400 | -4600 |',
+        '| 增长 | 98000 | 101200 | 3200 |',
+        '| 支持 | 42000 | 40900 | -1100 |',
+        '| 研发 | 36000 | 37200 | 1200 |',
+        '',
+        '## 备注',
+        '- 预算执行在季度审批范围内。',
+        '- 供应商续约待财务复核。',
+        '- 数字核对完成前不对外发送。',
+      ]
+    : [
+        '# Q3 Budget Review',
+        '',
+        '| Department | Forecast | Actual | Variance |',
+        '| --- | ---: | ---: | ---: |',
+        '| Platform | 124000 | 119400 | -4600 |',
+        '| Growth | 98000 | 101200 | 3200 |',
+        '| Support | 42000 | 40900 | -1100 |',
+        '| Research | 36000 | 37200 | 1200 |',
+        '',
+        '## Notes',
+        '- Forecast remains within the approved quarterly range.',
+        '- Vendor renewals are pending finance review.',
+        '- No external distribution until numbers are reconciled.',
+      ]
+  ).join('\n')
   return {
     id: panicDocumentId,
-    title: 'Q3 Budget Review',
+    title: zh ? 'Q3 预算复盘' : 'Q3 Budget Review',
     sourceUrl: 'https://intranet.example.com/budget',
     markdown,
     raw: markdown,
     fetchedAt: now,
     summary: summarizeMarkdown(markdown),
-    fileName: 'Q3 Budget Review.xlsx',
+    fileName: zh ? 'Q3 预算复盘.xlsx' : 'Q3 Budget Review.xlsx',
     skin: 'excel',
     pageKind: 'article',
     lastOpenedAt: now,
-    projectName: 'Finance Planning',
+    projectName: zh ? '财务规划' : 'Finance Planning',
+    sizeBytes: new Blob([markdown]).size,
+    openCount: 1,
+    lastSyncedAt: now,
+  }
+}
+
+// A localized welcome "document" rendered by every non-Word/VS-Code home skin,
+// so the "Open as…" gallery previews EVERY disguise in its real chrome. The
+// sample links are live — the stage click handler routes them through the
+// reader in the previewed skin.
+function createHomeDocument(skin: SkinId): DocumentRecord {
+  const c = landingContent(lang)
+  const brand = tr(lang, 'brand')
+  const tagline = tr(lang, 'tagline')
+  const markdown = [
+    c.heroSub,
+    '',
+    `> **⌘K / Ctrl K** — ${tr(lang, 'wTip')}`,
+    '',
+    ...samplesFor(lang).map((s) => `- [${s.label}](${s.url})`),
+    '',
+    `## ${c.featuresTitle}`,
+    ...c.features.map((f) => `- **${f.t}** — ${f.d}`),
+    '',
+    `## ${c.faqTitle}`,
+    ...c.faqs.flatMap((q) => [`### ${q.q}`, '', q.a, '']),
+  ].join('\n')
+  const now = formatTime(new Date())
+  return {
+    id: 'home-welcome',
+    title: `${brand} · ${tagline}`,
+    sourceUrl: 'https://sneakread.com/',
+    markdown,
+    raw: markdown,
+    fetchedAt: now,
+    summary: summarizeMarkdown(markdown),
+    fileName: makeFileName(`${brand} — Getting Started`, skin),
+    skin,
+    pageKind: 'article',
+    lastOpenedAt: now,
+    projectName: brand,
     sizeBytes: new Blob([markdown]).size,
     openCount: 1,
     lastSyncedAt: now,
@@ -776,9 +1040,14 @@ function routeFromHash(): Route {
   }
 }
 
-function updateHash(docId: string | null, skin: SkinId) {
+function updateHash(docId: string | null, skin: SkinId, push = false) {
   const next = docId ? `#/${encodeURIComponent(docId)}?skin=${skin}` : '#/'
-  if (window.location.hash !== next) window.history.replaceState(null, '', next)
+  if (window.location.hash === next) return
+  // Opening a *different* document pushes a history entry so the browser Back
+  // button steps back through articles (still disguised) instead of leaving
+  // the site; skin switches and home just rewrite the current entry.
+  if (push) window.history.pushState(null, '', next)
+  else window.history.replaceState(null, '', next)
 }
 
 /* ================================================================== *
@@ -798,15 +1067,30 @@ function AppShell() {
   const [status, setStatus] = useState<LoadState>('idle')
   const [error, setError] = useState('')
   const [loadingUrl, setLoadingUrl] = useState('')
+  // The disguise the loading skeleton wears — the one the page will open in.
+  const [loadingSkin, setLoadingSkin] = useState<SkinId>(DEFAULT_SKIN_ID)
   const [onboarded, setOnboarded] = useState(
     () => safeStorageGet(onboardKey) === '1',
   )
-  const [coachOff, setCoachOff] = useState(
-    () => safeStorageGet(coachKey) === '1',
-  )
+  // The menu-coach shows once PER SKIN: every disguise mounts its real menu in
+  // a different spot ("File", "…", the hamburger, a title bar), so learning it
+  // once in Word doesn't help in DingTalk. Legacy value '1' resets to empty —
+  // one more nudge per skin is cheap; a lost user is not.
+  const [coachSeen, setCoachSeen] = useState<string[]>(() => {
+    try {
+      const parsed = JSON.parse(safeStorageGet(coachKey) || '[]')
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  })
   const dismissCoach = () => {
-    setCoachOff(true)
-    safeStorageSet(coachKey, '1')
+    setCoachSeen((current) => {
+      if (current.includes(activeSkin)) return current
+      const next = [...current, activeSkin]
+      safeStorageSet(coachKey, JSON.stringify(next))
+      return next
+    })
   }
   // The home now has its own prominent URL box, so don't auto-open the palette
   // over it — ⌘K still opens it on demand.
@@ -826,14 +1110,17 @@ function AppShell() {
   // of sync (they keep reflecting the real Word/VS Code shell on screen).
   const [homeSkin, setHomeSkin] = useState<SkinId>(DEFAULT_SKIN_ID)
   const [openSkin, setOpenSkin] = useState<SkinId>(DEFAULT_SKIN_ID)
+  // Picking any skin previews it live: Word/VS Code show their interactive
+  // welcome shells; every other skin renders the welcome document in its own
+  // real chrome (see createHomeDocument).
   const pickHomeSkin = (id: SkinId) => {
+    if (id !== homeSkin) track('skin_switch', { from_skin: homeSkin, to_skin: id, surface: 'home' })
     setOpenSkin(id)
-    // Only Word and VS Code have real welcome shells; switch the visible home to
-    // those, otherwise keep the current shell (the pick still drives openSkin).
-    if (id === 'word' || id === 'vscode') setHomeSkin(id)
+    setHomeSkin(id)
   }
 
   const panicDoc = useMemo(() => createPanicDocument(formatTime(new Date())), [panic])
+  const homeDoc = useMemo(() => createHomeDocument(homeSkin), [homeSkin])
   const activeDoc = panic
     ? panicDoc
     : records.find((record) => record.id === activeId) ?? null
@@ -853,7 +1140,7 @@ function AppShell() {
   // Title bar + favicon reflect the disguise, never "Moyu"
   useEffect(() => {
     if (panic) {
-      document.title = 'Q3 Budget Review.xlsx - Excel'
+      document.title = `${panicDoc.fileName} - Excel`
       setFavicon('excel')
       return
     }
@@ -876,6 +1163,7 @@ function AppShell() {
   }, [])
 
   // Keep hash in sync (invisible deep link)
+  const lastHashDocId = useRef<string | null>(initialRoute.current.docId)
   useEffect(() => {
     if (panic) return
     // Don't clobber a booting deep link (#/<id> or #u=) to "#/" before the boot
@@ -886,8 +1174,45 @@ function AppShell() {
       didInitialSync.current = true
       if (!activeDoc && (initialRoute.current.docId || initialRoute.current.u)) return
     }
-    updateHash(activeDoc ? activeDoc.id : null, activeSkin)
+    const docId = activeDoc ? activeDoc.id : null
+    updateHash(docId, activeSkin, docId !== null && docId !== lastHashDocId.current)
+    lastHashDocId.current = docId
   }, [activeDoc, activeSkin, panic])
+
+  // Browser Back/Forward: each opened article pushed a history entry, so
+  // stepping through history swaps documents without leaving the disguise.
+  useEffect(() => {
+    const onPop = () => {
+      const route = routeFromHash()
+      setPanic(false)
+      lastHashDocId.current = route.docId
+      if (!route.docId) {
+        setActiveId(null)
+        return
+      }
+      const known = records.find((record) => record.id === route.docId)
+      if (known) {
+        if (route.skin && route.skin !== known.skin) {
+          const skin = route.skin
+          setRecords((current) =>
+            current.map((record) =>
+              record.id === route.docId ? { ...record, skin } : record,
+            ),
+          )
+        }
+        setActiveId(route.docId)
+        setStatus('ready')
+        return
+      }
+      // A history entry for a doc we no longer hold (e.g. pruned) — the id is
+      // the base64url source URL, so just re-open it.
+      const decoded = b64urlDecode(route.docId)
+      const safe = decoded ? safeHttpUrl(decoded) : null
+      if (safe) openUrl(safe, route.skin ?? undefined)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  })
 
   // Apply the deep-linked skin once records are available
   useEffect(() => {
@@ -925,18 +1250,36 @@ function AppShell() {
       setRecords((current) => upsertRecord(current, updated))
       setActiveId(updated.id)
       setStatus('ready')
+      track('document_open', {
+        skin: updated.skin,
+        page_kind: updated.pageKind,
+        source_domain: getSiteLabel(targetUrl),
+        cached: true,
+      })
       return
     }
 
     setStatus('loading')
     setError('')
     setLoadingUrl(targetUrl)
+    setLoadingSkin(forcedSkin ?? DEFAULT_SKIN_ID)
     const controller = new AbortController()
     abortRef.current = controller
     manualCancelRef.current = false
+    const fetchStartedAt = performance.now()
+    const durationBucket = () =>
+      bucket(performance.now() - fetchStartedAt, [1000, 3000, 8000, 20000])
     try {
       const override = safeStorageGet(readerSourceKey) || 'auto'
-      const parsed = await readWithFallback(targetUrl, controller.signal, override)
+      // `force` = the user's explicit Refresh — the only case worth a slow,
+      // rate-limited fresh render instead of Jina's warm cache.
+      const parsed = await readWithFallback(targetUrl, controller.signal, override, force)
+      track('reader_fetch', {
+        ok: true,
+        source_domain: getSiteLabel(targetUrl),
+        provider: safeStorageGet(readerGoodKey) || 'unknown',
+        duration_bucket: durationBucket(),
+      })
       // One canonical URL for the whole record: the reader may report a
       // redirected/canonical sourceUrl that differs from targetUrl. The id MUST
       // derive from the same URL that's stored (and that hydrateDocument re-hashes
@@ -961,6 +1304,13 @@ function AppShell() {
       setRecords((current) => upsertRecord(current, record))
       setActiveId(record.id)
       setStatus('ready')
+      track('document_open', {
+        skin,
+        page_kind: pageKind,
+        source_domain: getSiteLabel(canonicalUrl),
+        words_bucket: bucket(parsed.summary.words, [100, 500, 2000, 5000]),
+        cached: false,
+      })
     } catch (loadError) {
       if (manualCancelRef.current) {
         manualCancelRef.current = false
@@ -968,6 +1318,12 @@ function AppShell() {
         setError('')
         return
       }
+      track('reader_fetch', {
+        ok: false,
+        source_domain: getSiteLabel(targetUrl),
+        error_kind: readerErrorKind(loadError),
+        duration_bucket: durationBucket(),
+      })
       setError(loadErrorMessage(loadError))
       setStatus('error')
     } finally {
@@ -990,12 +1346,25 @@ function AppShell() {
       event.preventDefault()
       dismissCoach()
       const rect = trigger.getBoundingClientRect()
-      setMenuAnchor((current) => (current ? null : { x: rect.left, y: rect.bottom }))
+      // Keep the menu on screen: flip above bottom-edge mounts (status bars),
+      // clamp against the right edge for trailing "…" buttons. The height
+      // estimate mirrors the menu's CSS max-height (82vh).
+      const estimatedH = window.innerHeight * 0.82
+      const menuW = 260
+      let y = rect.bottom + 4
+      if (y + estimatedH > window.innerHeight - 8) {
+        y = Math.max(8, Math.min(rect.top - estimatedH - 4, window.innerHeight - estimatedH - 8))
+      }
+      const x = Math.max(8, Math.min(rect.left, window.innerWidth - menuW - 8))
+      setMenuAnchor((current) => (current ? null : { x, y }))
       return
     }
     const anchor = target.closest?.('a[href]') as HTMLAnchorElement | null
     if (!anchor) return
-    if (!activeDoc || anchor.target === '_blank' || anchor.hasAttribute('download')) return
+    // Explicit new-tab / download links keep native behavior. Links inside a
+    // document AND inside the home-preview welcome doc both route through the
+    // reader in the current disguise.
+    if (anchor.target === '_blank' || anchor.hasAttribute('download')) return
     const href = anchor.getAttribute('href') || ''
     const safeHref = safeHttpUrl(href, activeDoc?.sourceUrl)
     if (!safeHref) {
@@ -1005,35 +1374,43 @@ function AppShell() {
     // In-page anchors (footnotes, table-of-contents jumps) resolve to the same
     // article + a #fragment — scroll to the target instead of re-fetching the
     // whole page (which would drop the reader back at the top).
-    try {
-      const dest = new URL(safeHref)
-      const cur = new URL(activeDoc.sourceUrl)
-      const sameDoc =
-        dest.origin === cur.origin && dest.pathname === cur.pathname && dest.search === cur.search
-      if (dest.hash && sameDoc) {
-        event.preventDefault()
-        const el = document.getElementById(decodeURIComponent(dest.hash.slice(1)))
-        el?.scrollIntoView({ behavior: 'smooth' })
-        return
+    if (activeDoc) {
+      try {
+        const dest = new URL(safeHref)
+        const cur = new URL(activeDoc.sourceUrl)
+        const sameDoc =
+          dest.origin === cur.origin && dest.pathname === cur.pathname && dest.search === cur.search
+        if (dest.hash && sameDoc) {
+          event.preventDefault()
+          const el = document.getElementById(decodeURIComponent(dest.hash.slice(1)))
+          el?.scrollIntoView({ behavior: 'smooth' })
+          return
+        }
+      } catch {
+        // fall through to normal open
       }
-    } catch {
-      // fall through to normal open
     }
     event.preventDefault()
     if (event.metaKey || event.ctrlKey) {
       window.open(safeHref, '_blank', 'noopener,noreferrer')
       return
     }
-    openUrl(safeHref, panic ? undefined : activeDoc?.skin)
+    openUrl(safeHref, panic ? undefined : activeDoc?.skin ?? homeSkin)
   }
 
   const goHome = () => {
     setPanic(false)
+    // Keep the current disguise on the way home — never break character.
+    if (activeDoc) {
+      setHomeSkin(activeDoc.skin)
+      setOpenSkin(activeDoc.skin)
+    }
     setActiveId(null)
   }
 
   const setLanguage = (code: Lang) => {
     if (code === lang) return
+    track('language_change', { from: lang, to: code })
     safeStorageSet(langKey, code)
     window.location.reload()
   }
@@ -1041,12 +1418,14 @@ function AppShell() {
   const finishOnboarding = (openPalette: boolean) => {
     safeStorageSet(onboardKey, '1')
     setOnboarded(true)
+    track('onboarding_done', { cta: openPalette })
     if (openPalette) setPaletteOpen(true)
   }
 
   const changeSkin = (skin: SkinId) => {
     setPanic(false)
     if (!activeDoc) return
+    track('skin_switch', { from_skin: activeDoc.skin, to_skin: skin })
     setRecords((current) =>
       current.map((record) =>
         record.id === activeDoc.id
@@ -1072,6 +1451,7 @@ function AppShell() {
 
   const togglePanic = () => {
     setPaletteOpen(false)
+    track('panic', { action: panic ? 'close' : 'open' })
     if (panic) {
       setPanic(false)
       if (panicPrev) setActiveId(panicPrev)
@@ -1080,6 +1460,11 @@ function AppShell() {
     }
     setPanicPrev(activeId)
     setPanic(true)
+  }
+
+  const toggleBossMode = () => {
+    track('boss_auto_hide', { on: !bossMode })
+    setBossMode((value) => !value)
   }
 
   const enterFullscreen = () => {
@@ -1094,13 +1479,26 @@ function AppShell() {
 
   // A self-contained link that re-opens the same page in the same disguise for
   // anyone (the source URL + skin travel in the hash, so it survives sharing).
+  // Wrapped in a one-line in-joke so every share carries its own pitch.
   const copyShareLink = async () => {
     if (!activeDoc) return
     // Same reversible form as the address bar: #/<base64url(url)>?skin=… — opaque
     // (no visible http), and the recipient's app decodes it back to the article.
     // Keep the current path (language / deploy base) so the link opens correctly.
     const link = `${window.location.origin}${window.location.pathname}#/${activeDoc.id}?skin=${activeSkin}`
-    await navigator.clipboard.writeText(link).catch(() => {})
+    const blurb = t('shareBlurb', { app: skinAppName(activeSkinMeta, lang), link })
+    await navigator.clipboard.writeText(blurb).catch(() => {})
+    track('share_copy', { skin: activeSkin })
+  }
+
+  // Personalized disguise: ask for the name shown on avatars / watermark.
+  const [, bumpAlias] = useState(0)
+  const promptAlias = () => {
+    const next = window.prompt(t('aliasPrompt'), getAlias())
+    if (next === null) return
+    setAlias(next)
+    track('alias_set', { set: Boolean(next.trim()) })
+    bumpAlias((value) => value + 1)
   }
 
   // Open a shared / sample deep link (#u=<url>&skin=<skin>). Read the route
@@ -1145,6 +1543,10 @@ function AppShell() {
       if (event.key === 'Escape') {
         if (paletteOpen) {
           setPaletteOpen(false)
+        } else if (menuAnchor) {
+          setMenuAnchor(null)
+        } else if (aboutOpen) {
+          setAboutOpen(false)
         } else {
           event.preventDefault()
           togglePanic()
@@ -1154,6 +1556,35 @@ function AppShell() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   })
+
+  // Warm Monaco (the ~3.6MB real VS Code editor chunk) only when a VS Code
+  // surface is on deck — a Word-home visitor should never download an IDE.
+  // The skin degrades gracefully anyway (static CodeEditor until Monaco lands).
+  useEffect(() => {
+    if (activeSkin === 'vscode' || openSkin === 'vscode') {
+      void import('./monacoCode')
+    }
+  }, [activeSkin, openSkin])
+
+  // Analytics: sanitized SPA page_views (a stable virtual path — never the
+  // hash, which encodes the source URL) + palette opens.
+  useEffect(() => {
+    trackPageView(activeDoc ? '/read' : window.location.pathname, {
+      skin: activeSkin,
+      ...(activeDoc ? { source_domain: getSiteLabel(activeDoc.sourceUrl) } : {}),
+      language: lang,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId])
+
+  useEffect(() => {
+    if (paletteOpen) track('palette_open')
+  }, [paletteOpen])
+
+  useEffect(() => {
+    if (menuAnchor) track('menu_open', { skin: activeSkin })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menuAnchor])
 
   // Boss auto-hide when the window loses focus
   useEffect(() => {
@@ -1177,8 +1608,10 @@ function AppShell() {
         title: t('openAs', { app: label }),
         hint: skinAppName(skin, lang),
         keywords: `skin open as ${skin.id} ${label} ${skin.label}`,
-        enabled: Boolean(activeDoc),
-        run: () => changeSkin(skin.id),
+        // With a document open this re-skins it; on the home it swaps the
+        // live preview — either way the command always does something.
+        enabled: true,
+        run: () => (activeDoc ? changeSkin(skin.id) : pickHomeSkin(skin.id)),
       })
     })
     list.push(
@@ -1229,7 +1662,7 @@ function AppShell() {
         hint: t('bossHint'),
         keywords: 'boss blur safe hide auto',
         enabled: true,
-        run: () => setBossMode((value) => !value),
+        run: toggleBossMode,
       },
       {
         id: 'panic',
@@ -1247,7 +1680,10 @@ function AppShell() {
   const recents = records.filter((record) => record.id !== panicDocumentId)
 
   return (
-    <div className={`stage skin-${activeSkin}`} onClick={onStageClick}>
+    <div
+      className={`stage skin-${activeSkin}${activeDoc ? '' : ' home-stage'}`}
+      onClick={onStageClick}
+    >
       {activeDoc ? (
         <SkinControlsProvider value={{ activeSkin, skins, onSwitchSkin: changeSkin }}>
           <SkinSurface doc={activeDoc} skin={activeSkin} />
@@ -1264,7 +1700,7 @@ function AppShell() {
           onPickSkin={pickHomeSkin}
           homeSkin={openSkin}
         />
-      ) : (
+      ) : homeSkin === 'word' ? (
         <WordWelcome
           lang={lang}
           onOpen={(url) => openUrl(url, openSkin)}
@@ -1276,9 +1712,19 @@ function AppShell() {
           onPickSkin={pickHomeSkin}
           homeSkin={openSkin}
         />
+      ) : (
+        // Live preview: the welcome document rendered by the picked skin's own
+        // chrome. Sample links inside it open through the reader as usual.
+        <SkinControlsProvider
+          value={{ activeSkin: homeSkin, skins, onSwitchSkin: pickHomeSkin }}
+        >
+          <SkinSurface doc={homeDoc} skin={homeSkin} />
+        </SkinControlsProvider>
       )}
 
-      {status === 'loading' && <LoadingOverlay url={loadingUrl} onCancel={cancelLoad} />}
+      {status === 'loading' && (
+        <LoadingOverlay url={loadingUrl} skin={loadingSkin} onCancel={cancelLoad} />
+      )}
 
       {paletteOpen && (
         <CommandPalette
@@ -1307,8 +1753,11 @@ function AppShell() {
           actions={{
             openPalette: () => setPaletteOpen(true),
             goHome,
-            setSkin: changeSkin,
+            // On the home there is no document yet — "Open as X" switches the
+            // live home preview instead of silently doing nothing.
+            setSkin: activeDoc ? changeSkin : pickHomeSkin,
             setLang: setLanguage,
+            alias: promptAlias,
             setReaderSource: (source) => {
               if (source === 'auto') safeStorageRemove(readerSourceKey)
               else safeStorageSet(readerSourceKey, source)
@@ -1320,25 +1769,30 @@ function AppShell() {
             refresh: refreshActive,
             share: copyShareLink,
             copy: copySource,
-            original: () =>
-              activeDoc && window.open(activeDoc.sourceUrl, '_blank', 'noopener,noreferrer'),
+            original: () => {
+              if (!activeDoc) return
+              track('original_open', { source_domain: getSiteLabel(activeDoc.sourceUrl) })
+              window.open(activeDoc.sourceUrl, '_blank', 'noopener,noreferrer')
+            },
             fullscreen: enterFullscreen,
-            toggleBoss: () => setBossMode((value) => !value),
+            toggleBoss: toggleBossMode,
             panic: togglePanic,
             help: () => setAboutOpen(true),
           }}
         />
       )}
 
-      {(!onboarded || aboutOpen) && (
+      {/* Teach on the first opened document, not on the landing — the ⌘K/Esc
+          knowledge only makes sense once there is something to hide. */}
+      {((Boolean(activeDoc) && !onboarded) || aboutOpen) && (
         <Onboarding
-          onStart={() => (onboarded ? setAboutOpen(false) : finishOnboarding(true))}
+          onStart={() => (onboarded ? setAboutOpen(false) : finishOnboarding(false))}
           onSkip={() => (onboarded ? setAboutOpen(false) : finishOnboarding(false))}
         />
       )}
 
       {onboarded &&
-        !coachOff &&
+        !coachSeen.includes(activeSkin) &&
         !panic &&
         !aboutOpen &&
         !menuAnchor &&
@@ -1377,7 +1831,15 @@ function FileCoach({ skin, onDismiss }: { skin: SkinId; onDismiss: () => void })
   }, [skin])
 
   if (!rect) return null
-  const left = Math.max(12, rect.left)
+  // Keep the callout on screen: mounts live in every corner of the chrome
+  // (top File tabs, right-edge "…" buttons, bottom status bars), so clamp
+  // horizontally and flip above bottom-edge anchors. Mirrors the app-menu
+  // positioning logic. Sizes match .coach-callout CSS (max-width 280).
+  const calloutW = 280
+  const calloutH = 150
+  const left = Math.max(12, Math.min(rect.left, window.innerWidth - calloutW - 12))
+  const flipped = rect.bottom + 12 + calloutH > window.innerHeight - 8
+  const top = flipped ? Math.max(8, rect.top - calloutH - 12) : rect.bottom + 12
   return (
     <div className="coach-layer" dir={isRtl ? 'rtl' : undefined}>
       <div
@@ -1385,7 +1847,7 @@ function FileCoach({ skin, onDismiss }: { skin: SkinId; onDismiss: () => void })
         style={{ left: rect.left - 6, top: rect.top - 4 }}
         aria-hidden
       />
-      <div className="coach-callout" style={{ left, top: rect.bottom + 12 }}>
+      <div className={`coach-callout${flipped ? ' is-flipped' : ''}`} style={{ left, top }}>
         <div className="coach-arrow" />
         <strong>{t('coachTitle')}</strong>
         <p>{t('coachBody')}</p>
@@ -1402,6 +1864,7 @@ type MenuActions = {
   goHome: () => void
   setSkin: (skin: SkinId) => void
   setLang: (code: Lang) => void
+  alias: () => void
   setReaderSource: (source: string) => void
   refresh: () => void
   share: () => void
@@ -1485,6 +1948,9 @@ function AppMenu({
               {code === lang && <span className="menu-check">✓</span>}
             </button>
           ))}
+        <button type="button" className="menu-item" onClick={run(actions.alias)}>
+          <span>{t('mAlias')}</span>
+        </button>
         <button
           type="button"
           className="menu-item"
@@ -1606,7 +2072,10 @@ function CommandPalette({
       key: 'open-url',
       title: `${t('itemOpen')}  ${query.trim()}`,
       hint: 'Enter',
-      run: () => onOpenUrl(query.trim()),
+      run: () => {
+        track('url_submit', { surface: 'palette' })
+        onOpenUrl(query.trim())
+      },
     })
   }
 
@@ -1688,6 +2157,10 @@ function CommandPalette({
                   onClose()
                 }
               } else if (event.key === 'Escape') {
+                // Consume the key here: if it bubbles to the window handler the
+                // palette-close re-renders first and the stale-free handler then
+                // reads paletteOpen=false — and fires the boss key by mistake.
+                event.stopPropagation()
                 onClose()
               }
             }}
@@ -1716,22 +2189,69 @@ function CommandPalette({
   )
 }
 
-function LoadingOverlay({ url, onCancel }: { url: string; onCancel: () => void }) {
+// An in-character loading screen: instead of a dark modal (the loudest possible
+// break of the disguise), show the target app "opening a document" — a paper /
+// panel skeleton with shimmering text bars and a quiet status strip. The source
+// URL never appears full-size; only the hostname, small, in the status strip.
+function LoadingOverlay({
+  url,
+  skin,
+  onCancel,
+}: {
+  url: string
+  skin: SkinId
+  onCancel: () => void
+}) {
   const [secs, setSecs] = useState(0)
   useEffect(() => {
     const timer = window.setInterval(() => setSecs((value) => value + 1), 1000)
     return () => window.clearInterval(timer)
   }, [])
+  const meta = skinById(skin)
+  const dark = skin === 'vscode' || skin === 'claude-code'
+  // Office-family apps have a brand-colored title bar; everything else is light.
+  const chromeColor = dark
+    ? '#323233'
+    : ['word', 'excel', 'outlook'].includes(skin)
+      ? meta.accent
+      : '#ffffff'
+  const bars = [55, 92, 84, 68, 0, 88, 76, 92, 60, 0, 90, 82, 71]
   return (
-    <div className="load-overlay" role="alertdialog" dir={isRtl ? 'rtl' : undefined}>
-      <div className="load-card">
-        <div className="load-spinner" aria-hidden="true" />
-        <strong>{t('loadTitle')}</strong>
-        <span className="load-url">{url}</span>
-        <p>
-          {t('loadHint')}
+    <div
+      className={dark ? 'load-overlay is-dark' : 'load-overlay'}
+      role="status"
+      dir={isRtl ? 'rtl' : undefined}
+    >
+      <div className="load-chrome" style={{ background: chromeColor }} />
+      {/* An indeterminate sweep right under the chrome: the one motion cue the
+          eye catches instantly, and still in character (real Office/Docs show
+          exactly this while opening a document). */}
+      <div className="load-progress" aria-hidden="true">
+        <span style={{ background: meta.accent }} />
+      </div>
+      <div className="load-canvas">
+        <div className="load-doc">
+          <span className="load-bar load-bar-title" aria-hidden="true" />
+          {bars.slice(1).map((width, index) =>
+            width === 0 ? (
+              <span key={index} className="load-gap" aria-hidden="true" />
+            ) : (
+              <span
+                key={index}
+                className="load-bar"
+                style={{ width: `${width}%` }}
+                aria-hidden="true"
+              />
+            ),
+          )}
+        </div>
+      </div>
+      <div className="load-statusbar">
+        <span className="load-spinner" aria-hidden="true" />
+        <span className="load-status-text">
+          {t('loadTitle')} {getSiteLabel(url)}
           {secs > 3 ? ` · ${secs}s` : ''}
-        </p>
+        </span>
         <button type="button" className="load-cancel" onClick={onCancel}>
           {t('loadCancel')}
         </button>
@@ -1840,16 +2360,30 @@ function HomeContent({
   const submit = (event: FormEvent) => {
     event.preventDefault()
     const value = urlInput.trim()
-    if (value) onOpen(value)
+    if (!value) return
+    track('url_submit', { surface: 'home' })
+    onOpen(value)
   }
   return (
     <div className="welcome">
       <div className="welcome-hero">
+        {/* Same h1 text for SEO; visually the brand is an eyebrow and the
+            tagline is the headline (no more brand-tagline shouting match). */}
         <h1>
-          {brand} <span className="welcome-dot">·</span>{' '}
+          <span className="welcome-brand">{brand}</span>
+          <span className="welcome-dot">·</span>
           <span className="welcome-tagline">{tagline}</span>
         </h1>
         <p className="welcome-sub">{c.heroSub}</p>
+        <a
+          className="welcome-proof"
+          href="https://github.com/SneakRead/sneakread"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => track('outbound_cta', { target: 'github-hero' })}
+        >
+          ★ {tr(lang, 'openSource')} · GitHub
+        </a>
         <form className="welcome-open" onSubmit={submit}>
           <input
             aria-label={c.cta}
@@ -1863,7 +2397,14 @@ function HomeContent({
         <div className="welcome-samples">
           {samplesFor(lang).map((s) =>
             inApp ? (
-              <button key={s.url} type="button" onClick={() => onOpen(s.url)}>
+              <button
+                key={s.url}
+                type="button"
+                onClick={() => {
+                  track('sample_open', { source_domain: getSiteLabel(s.url) })
+                  onOpen(s.url)
+                }}
+              >
                 {s.label}
               </button>
             ) : (
@@ -1875,25 +2416,24 @@ function HomeContent({
             ),
           )}
         </div>
+        <div className="welcome-tip">
+          <kbd>⌘</kbd>
+          <kbd>K</kbd> — {tr(lang, 'wTip')}
+        </div>
         {status === 'error' && <p className="welcome-error">{error}</p>}
         {onPickSkin && (
           <div className="welcome-apps">
-            <div className="welcome-apps-title">{tr(lang, 'homeOpenAs')}</div>
+            <h2 className="welcome-apps-title">{tr(lang, 'homeOpenAs')}</h2>
             <div className="welcome-apps-grid">
               {skins.map((s) => (
                 <button
                   key={s.id}
                   type="button"
-                  className={`welcome-app${s.id === homeSkin ? ' is-active' : ''}${
-                    s.id === 'vscode' ? ' is-featured' : ''
-                  }`}
+                  className={`welcome-app${s.id === homeSkin ? ' is-active' : ''}`}
                   onClick={() => onPickSkin(s.id)}
                 >
-                  <SkinLogo id={s.id} size={26} />
+                  <SkinBrandLogo id={s.id} size={32} />
                   <span className="welcome-app-name">{skinLabel(s, lang)}</span>
-                  {s.id === 'vscode' && (
-                    <span className="welcome-app-tag">{tr(lang, 'homeDevPick')}</span>
-                  )}
                 </button>
               ))}
             </div>
@@ -1925,7 +2465,8 @@ function HomeContent({
         <ul className="welcome-features">
           {c.features.map((f) => (
             <li key={f.t}>
-              <strong>{f.t}</strong> — {f.d}
+              <strong>{f.t}</strong>
+              <span>{f.d}</span>
             </li>
           ))}
         </ul>
@@ -1933,14 +2474,15 @@ function HomeContent({
 
       <div className="welcome-section">
         <h2>{c.faqTitle}</h2>
-        <dl className="welcome-faq">
+        <div className="welcome-faq">
           {c.faqs.map((q) => (
             <div key={q.q}>
-              <dt>{q.q}</dt>
-              <dd>{q.a}</dd>
+              {/* Real h3s: crawlable structure for featured snippets / AI answers. */}
+              <h3>{q.q}</h3>
+              <p>{q.a}</p>
             </div>
           ))}
-        </dl>
+        </div>
       </div>
 
       {showLangs && (
@@ -1953,13 +2495,13 @@ function HomeContent({
         </nav>
       )}
 
-      <div className="welcome-tip">
-        <kbd>⌘</kbd>
-        <kbd>K</kbd> — {tr(lang, 'wTip')}
-      </div>
-
       <footer className="welcome-footer">
-        <a href="https://github.com/SneakRead/sneakread" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://github.com/SneakRead/sneakread"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => track('outbound_cta', { target: 'github' })}
+        >
           ★ {tr(lang, 'openSource')}
         </a>
         <span aria-hidden="true">·</span>
@@ -1967,7 +2509,12 @@ function HomeContent({
           {tr(lang, 'builtBy')} 刘小排 (Liu Xiaopai)
         </span>
         <span aria-hidden="true">·</span>
-        <a href="https://raphael.app" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://raphael.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => track('outbound_cta', { target: 'raphael' })}
+        >
           Raphael AI
         </a>
       </footer>
@@ -1975,10 +2522,26 @@ function HomeContent({
   )
 }
 
-// Default home: the welcome content inside a real Word document.
+// Default home: the welcome content inside a real Word document. The status
+// bar reports a believable word count — "0 words" on a 4-page doc is a tell.
+function approxWelcomeWords(pageLang: Lang) {
+  const c = landingContent(pageLang)
+  const text = [
+    c.heroSub,
+    ...c.features.map((f) => `${f.t} ${f.d}`),
+    ...c.faqs.map((q) => `${q.q} ${q.a}`),
+  ].join(' ')
+  return /[一-鿿]/.test(text)
+    ? text.replace(/\s/g, '').length
+    : text.split(/\s+/).length
+}
+
 function WordWelcome(props: HomeProps) {
   return (
-    <WordFrame fileName={`${tr(props.lang, 'brand')} — Getting Started.docx`}>
+    <WordFrame
+      fileName={`${tr(props.lang, 'brand')} — Getting Started.docx`}
+      statusWords={approxWelcomeWords(props.lang)}
+    >
       <article className="paper welcome-paper markdown-body">
         <HomeContent {...props} />
       </article>
@@ -2106,8 +2669,8 @@ function App() {
   const [booted, setBooted] = useState(false)
   useEffect(() => {
     setBooted(true)
-    // Warm the VS Code editor in the background so switching to it is instant.
-    void import('./monacoCode')
+    // Analytics stub is a no-op array push; the real tag loads at browser idle.
+    initAnalytics()
   }, [])
   if (!booted) {
     const pathLang = langFromPath(
