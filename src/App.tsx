@@ -820,6 +820,11 @@ function AppShell() {
     initialRoute.current.skin ?? initialRoute.current.uSkin,
   )
   const didInitialSync = useRef(false)
+  // True while showing the FIRST document of a shared/deep-link visit: a
+  // recipient's very first frame must be the magic (their friend's article in
+  // disguise), not a tutorial modal covering it. Any deliberate action —
+  // opening another URL — flips it off and onboarding resumes normally.
+  const sharedBoot = useRef(false)
   const [status, setStatus] = useState<LoadState>('idle')
   const [error, setError] = useState('')
   const [loadingUrl, setLoadingUrl] = useState('')
@@ -983,6 +988,9 @@ function AppShell() {
   }, [])
 
   const openUrl = async (rawInput: string, forcedSkin?: SkinId, force = false) => {
+    // Deliberate navigation ends the shared-visit grace period (the boot
+    // deep-link effect re-raises the flag right after its own call).
+    sharedBoot.current = false
     let targetUrl: string
     try {
       targetUrl = normalizeUrl(rawInput)
@@ -1280,6 +1288,7 @@ function AppShell() {
     if (u) {
       window.history.replaceState(null, '', window.location.pathname)
       openUrl(u, uSkin ?? DEFAULT_SKIN_ID)
+      sharedBoot.current = true
       return
     }
     // A #/<id> link we don't have locally (opened on a friend's device, or a
@@ -1289,7 +1298,10 @@ function AppShell() {
     if (docId && !records.some((record) => record.id === docId)) {
       const decoded = b64urlDecode(docId)
       const safe = decoded ? safeHttpUrl(decoded) : null
-      if (safe) openUrl(safe, bootSkin.current ?? DEFAULT_SKIN_ID)
+      if (safe) {
+        openUrl(safe, bootSkin.current ?? DEFAULT_SKIN_ID)
+        sharedBoot.current = true
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -1581,7 +1593,7 @@ function AppShell() {
 
       {/* Teach on the first opened document, not on the landing — the ⌘K/Esc
           knowledge only makes sense once there is something to hide. */}
-      {((Boolean(activeDoc) && !onboarded) || aboutOpen) && (
+      {((Boolean(activeDoc) && !onboarded && !sharedBoot.current) || aboutOpen) && (
         <Onboarding
           onStart={() => (onboarded ? setAboutOpen(false) : finishOnboarding(false))}
           onSkip={() => (onboarded ? setAboutOpen(false) : finishOnboarding(false))}
