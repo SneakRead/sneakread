@@ -35,7 +35,6 @@ import type {
   SkinId,
   LoadState,
   PageKind,
-  Summary,
   ReaderDoc,
   DocumentRecord,
 } from './core/types'
@@ -48,9 +47,10 @@ import {
 import {
   getSiteLabel,
   extractLinks,
-  extractImages,
   inferProjectName,
   safeHttpUrl,
+  cleanReaderMarkdown,
+  summarizeMarkdown,
 } from './core/content'
 import { getAlias, setAlias } from './core/alias'
 import { initAnalytics, track, trackPageView, bucket } from './core/analytics'
@@ -157,248 +157,6 @@ function parseReaderResponse(raw: string, fallbackUrl: string): ReaderDoc {
   }
 }
 
-function cleanReaderMarkdown(markdown: string) {
-  let unwrapped = markdown
-    // Some readers (Firecrawl on <br>-heavy pages like paulgraham.com) leave raw
-    // <br> tags that react-markdown renders as literal text. A run of 2+ is a
-    // paragraph break; a single one is a soft line-wrap → rejoin with a space.
-    .replace(/\s*(?:<br\s*\/?>\s*){2,}/gi, '\n\n')
-    .replace(/\s*<br\s*\/?>\s*/gi, ' ')
-    // Jina swaps inline data-URI images for a literal placeholder token; the
-    // whole image is noise once the data is gone.
-    .replace(/!?\\?\[[^\]]*\\?\]\(<?Base64-Image-Removed>?\)/gi, '')
-  // A markdown link whose text got split across a blank line never parses —
-  // react-markdown renders a literal "…text.](url)". Rejoin the pieces into
-  // one inline link. Run a few passes: long teasers can span several breaks.
-  for (let pass = 0; pass < 3; pass++) {
-    const joined = unwrapped.replace(
-      /\[([^\][\n]{1,240})\n{2,}([^\][\n]{0,240}\]\()/g,
-      '[$1 $2',
-    )
-    if (joined === unwrapped) break
-    unwrapped = joined
-  }
-  const rawLines = stripEscapeArtifacts(unwrapped.split('\n'))
-  // Boilerplate like "domain.com is blocked" arrives with a blank line between
-  // the domain and the error code — compare against the next *solid* line.
-  const nextSolid = (index: number) => {
-    for (let j = index + 1; j < rawLines.length; j++) {
-      if (rawLines[j].trim()) return rawLines[j]
-    }
-    return ''
-  }
-  const lines = stripLeadingLayoutTable(
-    stripAppPromoBlocks(
-      rawLines.filter(
-        (line, index) => !isReaderBoilerplateLine(line, nextSolid(index)) && !isSpacerTableRow(line),
-      ),
-    ),
-  )
-  return unwrapProseCell(trimLeadingNav(lines)).join('\n').replace(/\n{4,}/g, '\n\n\n').trim()
-}
-
-// Jina/Firecrawl escape stray characters and line breaks with backslashes that
-// react-markdown then shows literally ("foo\ \ bar", "ERR\_BLOCKED"). Clean them
-// outside code fences only, so shell continuations in real code survive.
-function stripEscapeArtifacts(lines: string[]) {
-  let fence: { ch: string; len: number } | null = null
-  return lines.map((line) => {
-    const marker = line.match(/^\s*(`{3,}|~{3,})/)
-    if (marker) {
-      const ch = marker[1][0]
-      const len = marker[1].length
-      if (fence === null) fence = { ch, len }
-      else if (fence.ch === ch && len >= fence.len) fence = null
-      return line
-    }
-    if (fence) return line
-    return line
-      .replace(/^\\+\s+/, '') // leading "\ " artifacts
-      .replace(/\s\\+(\s)/g, '$1') // stray backslashes floating between words
-      .replace(/\s*\\+$/, '') // trailing hard-break backslashes
-  })
-}
-
-// "Scan to download our app" banners: drop the promo line AND the bare QR-code
-// image right above it, so a news homepage doesn't open on a giant QR code.
-function isAppPromoLine(line: string) {
-  const t = readerBoilerplateCandidate(line)
-  return (
-    /^扫[一描码][描码]?\s*(下载|安装|关注)?/.test(t) ||
-    /^(扫码|扫描)(下载|安装|关注)/.test(t) ||
-    /^(下载|打开)\s*(APP|App|客户端|应用)/.test(t) ||
-    /^立即(下载|体验|打开)$/.test(t) ||
-    /^(Download|Get|Open)\s+(our\s+|the\s+)?app\b/i.test(t)
-  )
-}
-
-function stripAppPromoBlocks(lines: string[]) {
-  const bareImage = /^\s*\[?!\[[^\]]*\]\([^)]+\)\]?(\([^)]+\))?\s*$/
-  const drop = new Set<number>()
-  lines.forEach((line, index) => {
-    if (!isAppPromoLine(line)) return
-    drop.add(index)
-    let j = index - 1
-    while (j >= 0 && !lines[j].trim()) j--
-    if (j >= 0 && bareImage.test(lines[j])) drop.add(j)
-  })
-  return drop.size ? lines.filter((_, index) => !drop.has(index)) : lines
-}
-
-// A pipe row whose every cell is empty, a separator, or a bare (linked) image —
-// i.e. an HTML layout spacer, never real content. Safe to drop wherever it sits.
-function isSpacerTableRow(line: string) {
-  const t = line.trim()
-  // pg's layout rows use a leading pipe but often no trailing pipe.
-  if (!/^\|/.test(t) || !t.includes('|', 1)) return false
-  const cells = t.replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim())
-  return cells.every(
-    (c) => !c || /^[-:\s]+$/.test(c) || /^\[?!\[[^\]]*\]\([^)]*\)\]?(\([^)]*\))?$/.test(c),
-  )
-}
-
-// paulgraham.com (via Firecrawl) nests the whole essay inside one table cell:
-// `| ![alt](logo) July 2023 If you collected... |`. When a table row is really
-// one long prose cell, unwrap it to a plain paragraph so it renders as an
-// article, not a one-cell table. Conservative: only very long single cells.
-function unwrapProseCell(lines: string[]) {
-  return lines.map((line) => {
-    const t = line.trim()
-    if (!/^\|/.test(t) || !t.includes('|', 1)) return line
-    const cells = t.replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim())
-    const filled = cells.filter(Boolean)
-    if (filled.length !== 1) return line
-    const cell = filled[0].replace(/^!?\[[^\]]*\]\([^)]*\)\s*/, '') // drop a leading logo image
-    return cell.length > 200 ? cell : line
-  })
-}
-
-// Some readers (Firecrawl on old-school sites like paulgraham.com) emit the
-// page's nested HTML layout as leading markdown tables full of one-word nav
-// links or spacer images. Repeatedly drop leading tables whose cells look
-// navish (short, no prose), so real data tables further down are untouched.
-function stripLeadingLayoutTable(lines: string[]) {
-  let cursor = 0
-  for (;;) {
-    let i = cursor
-    while (i < lines.length && !lines[i].trim()) i++
-    const tableStart = i
-    const tableRows: string[] = []
-    while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) {
-      tableRows.push(lines[i])
-      i++
-    }
-    if (tableRows.length < 2) break
-    const cells = tableRows
-      .flatMap((row) => row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|'))
-      .map((c) => c.trim())
-      .filter((c) => c && !/^[-:\s]+$/.test(c))
-    const shortCells = cells.filter(
-      (c) => c.replace(/!?\[[^\]]*\]|\([^)]*\)/g, '').trim().length <= 24,
-    )
-    // Empty spacer table, or >80% short tokens → layout/nav, not real data.
-    const navish = !cells.length || shortCells.length / cells.length >= 0.8
-    if (!navish) break
-    lines = lines.slice(0, tableStart).concat(lines.slice(i))
-    cursor = tableStart
-  }
-  return lines
-}
-
-// Drop a nav-heavy preamble (site sidebar / link menu) that sits before the
-// first real paragraph. No-op for normal articles that open with prose.
-function trimLeadingNav(lines: string[]) {
-  const isNavish = (raw: string) => {
-    const t = raw.trim()
-    if (!t) return false
-    return (
-      /^[-*+]\s*\[[^\]]+\]\([^)]+\)/.test(t) ||
-      /^\[[^\]]+\]\([^)]+\)$/.test(t) ||
-      /^[•·☑✓▪●]/.test(t) ||
-      /^[-*+]\s+\S{1,24}$/.test(t)
-    )
-  }
-  const firstProse = lines.findIndex((line) => {
-    const t = line.trim()
-    return t.length > 120 && !/^[#>\-*+|![]/.test(t)
-  })
-  if (firstProse <= 0) return lines
-  const navCount = lines.slice(0, firstProse).filter(isNavish).length
-  return navCount >= 5 ? lines.slice(firstProse) : lines
-}
-
-function readerBoilerplateCandidate(line = '') {
-  return line
-    .trim()
-    .replace(/\\+\s*$/, '')
-    // Un-escape reader backslash-escapes ("ERR\_BLOCKED\_BY\_CLIENT") so the
-    // boilerplate patterns below match what the page actually said.
-    .replace(/\\([_*[\]()#`~<>.-])/g, '$1')
-    .replace(/^#{1,6}\s*/, '')
-    .replace(/^[•·☑✓\-*]\s*/, '')
-    .trim()
-}
-
-function isReaderBoilerplateLine(line: string, nextLine = '') {
-  const clean = readerBoilerplateCandidate(line)
-  if (!clean) return false
-  // Video-player seek buttons scraped as bare "+10 / -10 / 10" lines. Only the
-  // raw line (no list prefix) counts, so "- 10" in a real list survives.
-  if (/^[+-]?\d{1,3}$/.test(line.trim())) return true
-  const nextClean = readerBoilerplateCandidate(nextLine)
-  const blockedWidgetDomain =
-    /^([a-z0-9-]+\.)+[a-z]{2,}$/i.test(clean) &&
-    /^(is blocked|ERR_[A-Z_]+|blocked by an? (extension|ad ?blocker))/i.test(nextClean)
-  if (blockedWidgetDomain) return true
-  return [
-    /^\[?(Skip|Jump) to (main content|content|navigation|search)\]?/i,
-    /^\[Keyboard shortcuts?( for .*)?\]\([^)]+\)$/i,
-    /^\[Accessibility help\]\([^)]+\)$/i,
-    /move to sidebar/i,
-    /^Main menu\b/i,
-    /^Navigation$/i,
-    /^Contribute$/i,
-    /^Personal tools$/i,
-    /^Toggle .*(subsection|section|the table of contents)/i,
-    /^\[?edit\]?(\([^)]*\))?( links| source| section)?$/i,
-    /^Retrieved from /i,
-    /^Advertisement$/i,
-    /^ADVERTISEMENT$/i,
-    /^Listen to this article$/i,
-    /^Share$/i,
-    // Embedded video-player chrome (BBC & friends leak the whole control strip).
-    /^(LIVE|START|PLAY|PAUSE|REPLAY)$/,
-    /^Auto-?play$/i,
-    /^Play next item automatically$/i,
-    /^Video quality$/i,
-    /^(Highest|Lowest|Auto(matic)?) available$/i,
-    /^(Captions?|Subtitles?)( off| on)?$/i,
-    /^(Enter|Exit) fullscreen$/i,
-    /^(Mute|Unmute|Rewind|Fast forward)$/i,
-    /^Playback (speed|rate)$/i,
-    /^\d+(\.\d+)?x$/,
-    /^\d{1,2}:\d{2}(:\d{2})?$/,
-    /^(Duration|Elapsed( time)?|Remaining( time)?)[:.]?$/i,
-    // Blocked third-party widgets (ad-blocker / extension) leaking into scrapes.
-    /^[a-z0-9.-]+\.[a-z]{2,}\s+is blocked$/i,
-    /^is blocked$/i,
-    /blocked by an? (extension|ad ?blocker)/i,
-    /^ERR_[A-Z_]+$/,
-    /^Try disabling your (extensions?|ad ?blocker)/i,
-    /^(Reload|Retry)$/,
-    // Cookie / consent boilerplate.
-    /^(Accept|Reject)( all)?( cookies)?$/i,
-    /^We (use|value) cookies/i,
-    /^This (site|website) uses cookies/i,
-    // GitHub / SPA session + template noise.
-    /^You (signed (in|out)|switched accounts) (with|on) another tab/i,
-    /Reload to refresh your session/i,
-    /^Dismiss alert$/i,
-    /^\{\{.*\}\}$/,
-    /^You can[’']t perform that action at this time\.?$/i,
-  ].some((pattern) => pattern.test(clean))
-}
-
 function assertHealthyReaderDoc(doc: ReaderDoc) {
   const title = doc.title.trim()
   const markdown = doc.markdown.trim()
@@ -448,21 +206,6 @@ function inferTitle(markdown: string, url: string) {
     return new URL(url).hostname.replace(/^www\./, '')
   } catch {
     return 'Untitled document'
-  }
-}
-
-function summarizeMarkdown(markdown: string, baseUrl?: string): Summary {
-  const plain = markdown
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/!\[[^\]]*]\([^)]+\)/g, ' ')
-    .replace(/\[[^\]]+]\([^)]+\)/g, ' ')
-    .replace(/[#>*_`~|[\]()]/g, ' ')
-  return {
-    words: plain.trim() ? plain.trim().split(/\s+/).length : 0,
-    headings: (markdown.match(/^#{1,6}\s+/gm) || []).length,
-    links: extractLinks(markdown, baseUrl).length,
-    images: extractImages(markdown, baseUrl).length,
-    tables: (markdown.match(/^\|.+\|$/gm) || []).length,
   }
 }
 
