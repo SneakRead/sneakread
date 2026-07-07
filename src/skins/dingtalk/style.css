@@ -1,0 +1,557 @@
+/* DingTalk (钉钉) desktop 7.x, light theme. Scoped: every rule lives under
+ * .dingtalk with dt- prefixed classes. No shared file is touched — the skin
+ * carries its own stage-fill rule. */
+
+.stage > .dingtalk {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.dingtalk {
+  --dt-blue: #007fff;
+  --dt-text: #171a1d;
+  --dt-2: #5f6772;
+  --dt-3: #9fa4aa;
+  --dt-line: #e9eaec;
+  --dt-fill: #f2f3f5;
+  --dt-hover: #f5f6f7;
+  --dt-sel: #eaf2ff;
+  --dt-red: #f53f3f;
+  --dt-own: #cce5ff;
+  --dt-font: "PingFang SC", -apple-system, BlinkMacSystemFont, "Hiragino Sans GB",
+    "Microsoft YaHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  height: 100%;
+  background: #fff;
+  color: var(--dt-text);
+  font-family: var(--dt-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================ Zone 1 — icon rail ============================ */
+.dingtalk .dt-rail {
+  flex: 0 0 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f7f8fa;
+  border-right: 1px solid var(--dt-line);
+  padding: 14px 0 10px;
+}
+.dingtalk .dt-rail-me {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--dt-blue);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.dingtalk .dt-rail-items {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  gap: 2px;
+}
+.dingtalk .dt-rail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  padding: 7px 0 6px;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--dt-2);
+  cursor: pointer;
+}
+.dingtalk .dt-rail-item:hover {
+  color: var(--dt-text);
+}
+.dingtalk .dt-rail-item.is-active {
+  color: var(--dt-blue);
+}
+.dingtalk .dt-rail-ic {
+  position: relative;
+  display: inline-flex;
+}
+.dingtalk .dt-rail-label {
+  font-size: 11px;
+  line-height: 1;
+}
+.dingtalk .dt-rail-item.is-active .dt-rail-label {
+  font-weight: 500;
+}
+.dingtalk .dt-rail-badge {
+  position: absolute;
+  top: -6px;
+  left: 13px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--dt-red);
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+.dingtalk .dt-rail-foot {
+  margin-top: auto;
+  width: 100%;
+}
+
+/* ========================= Zone 2 — conversation list ======================= */
+.dingtalk .dt-list {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid var(--dt-line);
+}
+.dingtalk .dt-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 10px;
+}
+.dingtalk .dt-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--dt-fill);
+  color: var(--dt-3);
+  font-size: 13px;
+}
+.dingtalk .dt-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--dt-fill);
+  color: var(--dt-2);
+  cursor: pointer;
+}
+.dingtalk .dt-add:hover {
+  background: #e8e9eb;
+}
+.dingtalk .dt-list-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 0 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #c9cdd2 transparent;
+}
+.dingtalk .dt-chat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dingtalk .dt-chat:hover {
+  background: var(--dt-hover);
+}
+.dingtalk .dt-chat.is-active {
+  background: var(--dt-sel);
+}
+.dingtalk .dt-chat-av {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+}
+.dingtalk .dt-av-group {
+  background: linear-gradient(180deg, #2f9dff, #007fff);
+}
+.dingtalk .dt-av-group2 {
+  border-radius: 8px;
+}
+.dingtalk .dt-av-logo {
+  background: none !important;
+}
+.dingtalk .dt-av-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  border: 2px solid #fff;
+  background: var(--dt-red);
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}
+.dingtalk .dt-chat-main {
+  flex: 1;
+  min-width: 0;
+}
+.dingtalk .dt-chat-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.dingtalk .dt-chat-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--dt-text);
+}
+.dingtalk .dt-chat-time {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--dt-3);
+}
+.dingtalk .dt-chat-preview {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--dt-3);
+  overflow: hidden;
+}
+.dingtalk .dt-chat-preview > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dingtalk .dt-mute {
+  flex: 0 0 auto;
+  color: var(--dt-3);
+}
+
+/* tag pills — DingTalk's 官方 (orange) and 机器人 (gray) */
+.dingtalk .dt-tag {
+  flex: 0 0 auto;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 15px;
+  font-weight: 400;
+}
+.dingtalk .dt-tag-gov {
+  background: #fff1e6;
+  color: #ff7d26;
+}
+.dingtalk .dt-tag-bot {
+  background: var(--dt-fill);
+  color: #8a9099;
+}
+
+/* ========================= Zone 3 — conversation ============================ */
+.dingtalk .dt-convo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f5f6f7;
+}
+.dingtalk .dt-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  padding: 0 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--dt-line);
+}
+.dingtalk .dt-head-id {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+.dingtalk .dt-head-name {
+  font-size: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dingtalk .dt-head-count {
+  flex: 0 0 auto;
+  font-size: 13px;
+  color: var(--dt-3);
+}
+.dingtalk .dt-head-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--dt-2);
+}
+.dingtalk .dt-head-ic {
+  display: inline-flex;
+  cursor: pointer;
+}
+.dingtalk .dt-head-ic:hover {
+  color: var(--dt-text);
+}
+.dingtalk .dt-head-ding {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: var(--dt-2);
+  cursor: pointer;
+}
+.dingtalk .dt-head-ding svg {
+  color: var(--dt-red);
+  fill: var(--dt-red);
+}
+
+/* message stream */
+.dingtalk .dt-thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 20px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: #c9cdd2 transparent;
+}
+.dingtalk .dt-switch {
+  margin-bottom: 10px;
+}
+.dingtalk .dt-date {
+  text-align: center;
+  margin: 2px 0 16px;
+  font-size: 12px;
+  color: var(--dt-3);
+}
+.dingtalk .dt-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.dingtalk .dt-msg-av {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2f9dff, #007fff);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+}
+.dingtalk .dt-av-me {
+  background: var(--dt-blue);
+}
+.dingtalk .dt-msg-col {
+  min-width: 0;
+  max-width: min(640px, 82%);
+}
+.dingtalk .dt-msg-sender {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: var(--dt-2);
+}
+.dingtalk .dt-msg-name {
+  font-weight: 400;
+}
+.dingtalk .dt-msg-time {
+  color: var(--dt-3);
+}
+.dingtalk .dt-bubble {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--dt-text);
+}
+.dingtalk .dt-msg-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.dingtalk .dt-receipt {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--dt-3);
+}
+
+/* own reply — right aligned, DingTalk light-blue bubble */
+.dingtalk .dt-msg-own {
+  justify-content: flex-end;
+}
+.dingtalk .dt-msg-own .dt-msg-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.dingtalk .dt-bubble-own {
+  background: var(--dt-own);
+}
+.dingtalk .dt-receipt-own {
+  text-align: right;
+}
+
+/* markdown inside a bubble — compact chat scale, headings barely larger */
+.dingtalk .dt-md.markdown-body {
+  color: var(--dt-text);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.dingtalk .dt-md.markdown-body h1,
+.dingtalk .dt-md.markdown-body h2,
+.dingtalk .dt-md.markdown-body h3,
+.dingtalk .dt-md.markdown-body h4 {
+  margin: 1.1em 0 0.4em;
+  color: var(--dt-text);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.dingtalk .dt-md.markdown-body > :first-child {
+  margin-top: 0;
+}
+.dingtalk .dt-md.markdown-body > :last-child {
+  margin-bottom: 0;
+}
+.dingtalk .dt-md.markdown-body h1 {
+  font-size: 16px;
+}
+.dingtalk .dt-md.markdown-body h2 {
+  font-size: 15px;
+}
+.dingtalk .dt-md.markdown-body h3,
+.dingtalk .dt-md.markdown-body h4 {
+  font-size: 14px;
+}
+.dingtalk .dt-md.markdown-body a {
+  color: var(--dt-blue);
+  text-decoration: none;
+}
+.dingtalk .dt-md.markdown-body a:hover {
+  text-decoration: underline;
+}
+.dingtalk .dt-md.markdown-body img {
+  margin: 10px auto;
+  border-radius: 6px;
+}
+.dingtalk .dt-md.markdown-body blockquote {
+  padding: 4px 12px;
+  color: var(--dt-2);
+  background: var(--dt-hover);
+  border-left: 3px solid #c9cdd4;
+}
+.dingtalk .dt-md.markdown-body code {
+  padding: 1px 5px;
+  background: rgba(23, 26, 29, 0.06);
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+.dingtalk .dt-md.markdown-body pre {
+  padding: 12px 14px;
+  background: var(--dt-hover);
+  border: 1px solid var(--dt-line);
+  border-radius: 6px;
+}
+.dingtalk .dt-md.markdown-body pre code {
+  padding: 0;
+  background: transparent;
+}
+.dingtalk .dt-md.markdown-body th,
+.dingtalk .dt-md.markdown-body td {
+  padding: 6px 9px;
+  border: 1px solid var(--dt-line);
+  font-size: 13px;
+}
+.dingtalk .dt-md.markdown-body th {
+  background: var(--dt-hover);
+}
+
+/* composer */
+.dingtalk .dt-composer {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-top: 1px solid var(--dt-line);
+  padding: 8px 14px 10px;
+}
+.dingtalk .dt-composer-tools {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 2px 0 6px;
+  color: var(--dt-2);
+}
+.dingtalk .dt-composer-tools svg {
+  cursor: pointer;
+}
+.dingtalk .dt-composer-tools svg:hover {
+  color: var(--dt-text);
+}
+.dingtalk .dt-composer-input {
+  height: 76px;
+}
+.dingtalk .dt-composer-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.dingtalk .dt-enter-hint {
+  font-size: 11px;
+  color: var(--dt-3);
+}
+/* DingTalk's send button is the muted bordered one — not a blue pill */
+.dingtalk .dt-send {
+  padding: 4px 18px;
+  border: 1px solid #dcdfe3;
+  border-radius: 5px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  color: #495057;
+  cursor: pointer;
+}
+.dingtalk .dt-send:hover {
+  background: var(--dt-hover);
+}

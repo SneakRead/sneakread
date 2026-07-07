@@ -18,6 +18,12 @@ export function detectLang(): Lang {
     saved = null
   }
   if (saved && LANGS.includes(saved as Lang)) return saved as Lang
+  // A language landing path (/zh/, /ja/ …) beats the browser locale — otherwise
+  // the prerendered page flips language a second after hydration.
+  if (typeof window !== 'undefined') {
+    const seg = window.location.pathname.split('/')[1]
+    if (LANGS.includes(seg as Lang)) return seg as Lang
+  }
   const raw =
     (typeof navigator !== 'undefined' &&
       ((navigator.languages && navigator.languages[0]) || navigator.language)) ||
@@ -50,7 +56,7 @@ const en: Dict = {
   onboardK: 'Command menu — open a link, switch apps, go fullscreen, hide',
   onboardEsc: 'Boss key — flip to a budget sheet instantly; press again to restore',
   onboardFull: 'Click any link to keep browsing, still disguised',
-  onboardStart: 'Start reading',
+  onboardStart: 'Got it — back to reading',
   onboardOnce: 'Shown only once',
   palettePlaceholder: 'Paste a URL, or type a command…',
   paletteEmpty: 'No matching commands',
@@ -80,6 +86,16 @@ const en: Dict = {
   loadTitle: 'Opening…',
   loadHint: 'Fetching readable text through the reader — usually a few seconds',
   loadCancel: 'Cancel',
+  errTimeout: 'The reader timed out on this page. Try again, or pick another reader under File ▸ Reader.',
+  errNoContent: 'This page returned no readable text — it may be an app-only or login-only page.',
+  errTooLittle: 'This page returned too little readable text to disguise. Try a specific article link.',
+  errBlocked: 'The site blocked the reader. Try again later or open a different link.',
+  errEnterUrl: 'Enter a URL',
+  errHttpOnly: 'Only http and https links are supported',
+  errUnknown: 'Could not open this page. Check the link and try again.',
+  shareBlurb: 'Looking busy in {app} 😎 my “work doc”: {link}',
+  mAlias: 'Display name…',
+  aliasPrompt: 'Name shown in the disguise (avatar, watermark). Leave empty to clear.',
 }
 
 const zh: Dict = {
@@ -89,7 +105,7 @@ const zh: Dict = {
   onboardK: '命令菜单——打开链接、切换软件、全屏、隐藏',
   onboardEsc: '老板键——一键切成预算表，再按一次恢复',
   onboardFull: '点任意链接继续浏览，依旧是伪装状态',
-  onboardStart: '开始阅读',
+  onboardStart: '知道了，继续读',
   onboardOnce: '只出现这一次',
   palettePlaceholder: '粘贴网址，或输入命令…',
   paletteEmpty: '没有匹配的命令',
@@ -119,6 +135,16 @@ const zh: Dict = {
   loadTitle: '正在打开…',
   loadHint: '正在通过阅读器抓取正文——通常几秒钟',
   loadCancel: '取消',
+  errTimeout: '阅读器抓取超时。可以重试，或在 文件 ▸ 阅读源 里换一个源。',
+  errNoContent: '这个页面没有可读正文——可能是仅限 App 或需要登录的页面。',
+  errTooLittle: '这个页面可读内容太少，撑不起伪装。试试具体的文章链接。',
+  errBlocked: '该网站拒绝了阅读器抓取。稍后重试，或换一个链接。',
+  errEnterUrl: '请输入网址',
+  errHttpOnly: '只支持 http / https 链接',
+  errUnknown: '无法打开这个页面，请检查链接后重试。',
+  shareBlurb: '我正在用 {app} 光明正大地摸鱼，这是我的「工作文档」：{link}',
+  mAlias: '伪装署名…',
+  aliasPrompt: '显示在伪装里的名字（头像、水印）。留空则清除。',
 }
 
 const es: Dict = {
@@ -128,7 +154,7 @@ const es: Dict = {
   onboardK: 'Menú de comandos: abrir un enlace, cambiar de app, pantalla completa, ocultar',
   onboardEsc: 'Tecla del jefe: cambia al instante a una hoja de presupuesto; púlsala de nuevo para volver',
   onboardFull: 'Haz clic en cualquier enlace para seguir navegando, aún disfrazado',
-  onboardStart: 'Empezar a leer',
+  onboardStart: 'Entendido, seguir leyendo',
   onboardOnce: 'Se muestra solo una vez',
   palettePlaceholder: 'Pega una URL o escribe un comando…',
   paletteEmpty: 'No hay comandos que coincidan',
@@ -158,6 +184,16 @@ const es: Dict = {
   loadTitle: 'Abriendo…',
   loadHint: 'Obteniendo el texto a través del lector; suele tardar unos segundos',
   loadCancel: 'Cancelar',
+  errTimeout: 'El lector tardó demasiado. Reintenta o cambia de lector en Archivo ▸ Lector.',
+  errNoContent: 'Esta página no devolvió texto legible; puede requerir la app o iniciar sesión.',
+  errTooLittle: 'Esta página tiene muy poco texto legible. Prueba con un artículo concreto.',
+  errBlocked: 'El sitio bloqueó al lector. Inténtalo más tarde o abre otro enlace.',
+  errEnterUrl: 'Escribe una URL',
+  errHttpOnly: 'Solo se admiten enlaces http y https',
+  errUnknown: 'No se pudo abrir esta página. Revisa el enlace e inténtalo de nuevo.',
+  shareBlurb: 'Fingiendo trabajar en {app} 😎 mi “documento de trabajo”: {link}',
+  mAlias: 'Nombre visible…',
+  aliasPrompt: 'Nombre mostrado en el disfraz (avatar, marca de agua). Vacío para borrar.',
 }
 
 const hi: Dict = {
@@ -167,7 +203,7 @@ const hi: Dict = {
   onboardK: 'कमांड मेनू — लिंक खोलें, ऐप बदलें, फुलस्क्रीन, छिपाएँ',
   onboardEsc: 'बॉस की — तुरंत बजट शीट पर जाएँ; वापस लाने के लिए फिर दबाएँ',
   onboardFull: 'ब्राउज़िंग जारी रखने के लिए किसी भी लिंक पर क्लिक करें, फिर भी छद्म रूप में',
-  onboardStart: 'पढ़ना शुरू करें',
+  onboardStart: 'समझ गया — पढ़ना जारी रखें',
   onboardOnce: 'सिर्फ़ एक बार दिखेगा',
   palettePlaceholder: 'URL पेस्ट करें, या कमांड लिखें…',
   paletteEmpty: 'कोई मिलती-जुलती कमांड नहीं',
@@ -197,6 +233,16 @@ const hi: Dict = {
   loadTitle: 'खुल रहा है…',
   loadHint: 'रीडर के ज़रिए टेक्स्ट लाया जा रहा है — आमतौर पर कुछ सेकंड',
   loadCancel: 'रद्द करें',
+  errTimeout: 'रीडर का समय समाप्त हो गया। फिर कोशिश करें, या फ़ाइल ▸ रीडर से दूसरा रीडर चुनें।',
+  errNoContent: 'इस पेज पर पढ़ने योग्य टेक्स्ट नहीं मिला — यह ऐप-ओनली या लॉगिन पेज हो सकता है।',
+  errTooLittle: 'इस पेज पर पढ़ने योग्य सामग्री बहुत कम है। किसी लेख का सीधा लिंक आज़माएँ।',
+  errBlocked: 'साइट ने रीडर को रोक दिया। बाद में कोशिश करें या दूसरा लिंक खोलें।',
+  errEnterUrl: 'कोई URL दर्ज करें',
+  errHttpOnly: 'सिर्फ़ http और https लिंक समर्थित हैं',
+  errUnknown: 'यह पेज नहीं खुल सका। लिंक जाँचकर फिर कोशिश करें।',
+  shareBlurb: '{app} में व्यस्त दिखते हुए पढ़ रहा हूँ 😎 मेरा “वर्क डॉक”: {link}',
+  mAlias: 'प्रदर्शित नाम…',
+  aliasPrompt: 'भेस में दिखने वाला नाम (अवतार, वॉटरमार्क)। हटाने के लिए खाली छोड़ें।',
 }
 
 const ar: Dict = {
@@ -206,7 +252,7 @@ const ar: Dict = {
   onboardK: 'قائمة الأوامر — افتح رابطًا، بدّل التطبيقات، ملء الشاشة، إخفاء',
   onboardEsc: 'زر المدير — انتقل فورًا إلى جدول ميزانية؛ اضغط مرة أخرى للعودة',
   onboardFull: 'انقر أي رابط لمواصلة التصفّح، وأنت متخفٍّ',
-  onboardStart: 'ابدأ القراءة',
+  onboardStart: 'فهمت — أكمل القراءة',
   onboardOnce: 'يظهر مرة واحدة فقط',
   palettePlaceholder: 'الصق رابطًا أو اكتب أمرًا…',
   paletteEmpty: 'لا توجد أوامر مطابقة',
@@ -236,6 +282,16 @@ const ar: Dict = {
   loadTitle: 'جارٍ الفتح…',
   loadHint: 'يتم جلب النص عبر القارئ — عادةً بضع ثوانٍ',
   loadCancel: 'إلغاء',
+  errTimeout: 'انتهت مهلة القارئ على هذه الصفحة. أعد المحاولة أو غيّر القارئ من ملف ▸ القارئ.',
+  errNoContent: 'لم تُرجع هذه الصفحة نصًا قابلًا للقراءة — قد تتطلب التطبيق أو تسجيل الدخول.',
+  errTooLittle: 'النص القابل للقراءة في هذه الصفحة قليل جدًا. جرّب رابط مقال محدد.',
+  errBlocked: 'حظر الموقع القارئ. حاول لاحقًا أو افتح رابطًا آخر.',
+  errEnterUrl: 'أدخل رابط URL',
+  errHttpOnly: 'روابط http و https فقط مدعومة',
+  errUnknown: 'تعذّر فتح هذه الصفحة. تحقق من الرابط وحاول مجددًا.',
+  shareBlurb: 'أتظاهر بالعمل في {app} 😎 هذا «مستند عملي»: {link}',
+  mAlias: 'الاسم المعروض…',
+  aliasPrompt: 'الاسم الظاهر في التنكّر (الصورة الرمزية والعلامة المائية). اتركه فارغًا للمسح.',
 }
 
 const pt: Dict = {
@@ -245,7 +301,7 @@ const pt: Dict = {
   onboardK: 'Menu de comandos: abrir um link, trocar de app, tela cheia, ocultar',
   onboardEsc: 'Tecla do chefe: pula na hora para uma planilha de orçamento; pressione de novo para voltar',
   onboardFull: 'Clique em qualquer link para continuar navegando, ainda disfarçado',
-  onboardStart: 'Começar a ler',
+  onboardStart: 'Entendi, continuar lendo',
   onboardOnce: 'Mostrado apenas uma vez',
   palettePlaceholder: 'Cole uma URL ou digite um comando…',
   paletteEmpty: 'Nenhum comando correspondente',
@@ -275,6 +331,16 @@ const pt: Dict = {
   loadTitle: 'Abrindo…',
   loadHint: 'Buscando o texto pelo leitor — geralmente alguns segundos',
   loadCancel: 'Cancelar',
+  errTimeout: 'O leitor excedeu o tempo nesta página. Tente de novo ou troque o leitor em Arquivo ▸ Leitor.',
+  errNoContent: 'Esta página não retornou texto legível — pode exigir o app ou login.',
+  errTooLittle: 'Esta página tem texto legível demais pouco para o disfarce. Tente o link de um artigo.',
+  errBlocked: 'O site bloqueou o leitor. Tente mais tarde ou abra outro link.',
+  errEnterUrl: 'Digite uma URL',
+  errHttpOnly: 'Apenas links http e https são aceitos',
+  errUnknown: 'Não foi possível abrir esta página. Verifique o link e tente de novo.',
+  shareBlurb: 'Fingindo trabalhar no {app} 😎 meu “documento de trabalho”: {link}',
+  mAlias: 'Nome exibido…',
+  aliasPrompt: 'Nome mostrado no disfarce (avatar, marca-d’água). Vazio para limpar.',
 }
 
 const ru: Dict = {
@@ -284,7 +350,7 @@ const ru: Dict = {
   onboardK: 'Меню команд — открыть ссылку, сменить приложение, полный экран, скрыть',
   onboardEsc: 'Кнопка «босс» — мгновенно к таблице бюджета; нажмите ещё раз, чтобы вернуться',
   onboardFull: 'Нажимайте на ссылки, чтобы продолжать просмотр, оставаясь замаскированным',
-  onboardStart: 'Начать чтение',
+  onboardStart: 'Понятно — продолжить чтение',
   onboardOnce: 'Показывается только один раз',
   palettePlaceholder: 'Вставьте URL или введите команду…',
   paletteEmpty: 'Нет подходящих команд',
@@ -314,6 +380,16 @@ const ru: Dict = {
   loadTitle: 'Открытие…',
   loadHint: 'Загружаем текст через ридер — обычно несколько секунд',
   loadCancel: 'Отмена',
+  errTimeout: 'Ридер не успел загрузить страницу. Повторите или смените ридер в Файл ▸ Ридер.',
+  errNoContent: 'Страница не вернула читаемый текст — возможно, нужен вход или приложение.',
+  errTooLittle: 'На странице слишком мало читаемого текста для маскировки. Откройте конкретную статью.',
+  errBlocked: 'Сайт заблокировал ридер. Попробуйте позже или откройте другую ссылку.',
+  errEnterUrl: 'Введите URL',
+  errHttpOnly: 'Поддерживаются только ссылки http и https',
+  errUnknown: 'Не удалось открыть страницу. Проверьте ссылку и повторите.',
+  shareBlurb: 'Делаю вид, что работаю в {app} 😎 мой «рабочий документ»: {link}',
+  mAlias: 'Отображаемое имя…',
+  aliasPrompt: 'Имя в маскировке (аватар, водяной знак). Пусто — очистить.',
 }
 
 const ja: Dict = {
@@ -323,7 +399,7 @@ const ja: Dict = {
   onboardK: 'コマンドメニュー — リンクを開く、アプリ切替、全画面、隠す',
   onboardEsc: 'ボスキー — 即座に予算シートへ。もう一度押すと元に戻ります',
   onboardFull: 'リンクをクリックすれば、偽装したまま読み進められます',
-  onboardStart: '読み始める',
+  onboardStart: 'OK、読書に戻る',
   onboardOnce: '最初の一回だけ表示されます',
   palettePlaceholder: 'URL を貼り付けるか、コマンドを入力…',
   paletteEmpty: '一致するコマンドがありません',
@@ -353,6 +429,16 @@ const ja: Dict = {
   loadTitle: '開いています…',
   loadHint: 'リーダー経由で本文を取得中 — 通常は数秒です',
   loadCancel: 'キャンセル',
+  errTimeout: 'リーダーがタイムアウトしました。再試行するか、ファイル ▸ リーダーで切り替えてください。',
+  errNoContent: 'このページから読み取れる本文がありません。アプリ専用かログインが必要かもしれません。',
+  errTooLittle: '読み取れる本文が少なすぎます。個別記事のリンクを試してください。',
+  errBlocked: 'サイトがリーダーをブロックしました。時間をおくか、別のリンクを開いてください。',
+  errEnterUrl: 'URL を入力してください',
+  errHttpOnly: 'http / https のリンクのみ対応しています',
+  errUnknown: 'このページを開けませんでした。リンクを確認して再試行してください。',
+  shareBlurb: '{app} で仕事してるフリして読書中😎 私の「仕事のファイル」→ {link}',
+  mAlias: '表示名…',
+  aliasPrompt: '偽装に表示される名前（アバター・透かし）。空にすると解除。',
 }
 
 const fr: Dict = {
@@ -362,7 +448,7 @@ const fr: Dict = {
   onboardK: 'Menu de commandes : ouvrir un lien, changer d’appli, plein écran, masquer',
   onboardEsc: 'Touche patron : bascule aussitôt vers un tableau de budget ; appuyez encore pour revenir',
   onboardFull: 'Cliquez sur un lien pour continuer à naviguer, toujours déguisé',
-  onboardStart: 'Commencer à lire',
+  onboardStart: 'Compris, reprendre la lecture',
   onboardOnce: 'Affiché une seule fois',
   palettePlaceholder: 'Collez une URL ou tapez une commande…',
   paletteEmpty: 'Aucune commande correspondante',
@@ -392,6 +478,16 @@ const fr: Dict = {
   loadTitle: 'Ouverture…',
   loadHint: 'Récupération du texte via le lecteur — quelques secondes en général',
   loadCancel: 'Annuler',
+  errTimeout: 'Le lecteur a expiré sur cette page. Réessayez ou changez de lecteur via Fichier ▸ Lecteur.',
+  errNoContent: 'Cette page n’a renvoyé aucun texte lisible — appli ou connexion peut-être requise.',
+  errTooLittle: 'Texte lisible insuffisant pour le déguisement. Essayez le lien d’un article précis.',
+  errBlocked: 'Le site a bloqué le lecteur. Réessayez plus tard ou ouvrez un autre lien.',
+  errEnterUrl: 'Saisissez une URL',
+  errHttpOnly: 'Seuls les liens http et https sont pris en charge',
+  errUnknown: 'Impossible d’ouvrir cette page. Vérifiez le lien et réessayez.',
+  shareBlurb: 'J’ai l’air de bosser sur {app} 😎 mon « document de travail » : {link}',
+  mAlias: 'Nom affiché…',
+  aliasPrompt: 'Nom affiché dans le déguisement (avatar, filigrane). Vide pour effacer.',
 }
 
 const de: Dict = {
@@ -401,7 +497,7 @@ const de: Dict = {
   onboardK: 'Befehlsmenü — Link öffnen, App wechseln, Vollbild, ausblenden',
   onboardEsc: 'Chef-Taste — sofort zur Budgettabelle; erneut drücken zum Zurückwechseln',
   onboardFull: 'Klicke auf einen Link, um getarnt weiterzulesen',
-  onboardStart: 'Lesen starten',
+  onboardStart: 'Alles klar — weiterlesen',
   onboardOnce: 'Wird nur einmal angezeigt',
   palettePlaceholder: 'URL einfügen oder Befehl eingeben…',
   paletteEmpty: 'Keine passenden Befehle',
@@ -431,6 +527,16 @@ const de: Dict = {
   loadTitle: 'Wird geöffnet…',
   loadHint: 'Text wird über den Reader geladen — meist ein paar Sekunden',
   loadCancel: 'Abbrechen',
+  errTimeout: 'Zeitüberschreitung beim Reader. Erneut versuchen oder unter Datei ▸ Reader wechseln.',
+  errNoContent: 'Diese Seite lieferte keinen lesbaren Text — evtl. nur per App oder Login nutzbar.',
+  errTooLittle: 'Zu wenig lesbarer Text für die Tarnung. Versuche den Link eines konkreten Artikels.',
+  errBlocked: 'Die Seite hat den Reader blockiert. Später erneut versuchen oder anderen Link öffnen.',
+  errEnterUrl: 'URL eingeben',
+  errHttpOnly: 'Nur http- und https-Links werden unterstützt',
+  errUnknown: 'Seite konnte nicht geöffnet werden. Link prüfen und erneut versuchen.',
+  shareBlurb: 'Sehe in {app} sehr beschäftigt aus 😎 mein „Arbeitsdokument“: {link}',
+  mAlias: 'Anzeigename…',
+  aliasPrompt: 'Name in der Tarnung (Avatar, Wasserzeichen). Leer lassen zum Löschen.',
 }
 
 const messages: Record<Lang, Dict> = { en, zh, es, hi, ar, pt, ru, ja, fr, de }
@@ -482,16 +588,16 @@ for (const code of LANGS) Object.assign(messages[code], readerKey[code])
 
 // First-run coach-mark pointing at the File menu.
 const coachKeys: Record<Lang, Dict> = {
-  en: { coachTitle: 'Real menu lives here', coachBody: 'File hides language, share, and the panic key — not just decoration.', coachGot: 'Got it' },
-  zh: { coachTitle: '真正的菜单在这里', coachBody: '“文件”里藏着语言、分享和一键老板键，不只是摆设。', coachGot: '知道了' },
-  es: { coachTitle: 'El menú real está aquí', coachBody: 'Archivo esconde idioma, compartir y la tecla de pánico, no es decoración.', coachGot: 'Entendido' },
-  hi: { coachTitle: 'असली मेन्यू यहाँ है', coachBody: 'File में भाषा, शेयर और पैनिक-की छिपे हैं — सिर्फ़ सजावट नहीं।', coachGot: 'समझ गया' },
-  ar: { coachTitle: 'القائمة الحقيقية هنا', coachBody: 'يخفي "ملف" اللغة والمشاركة ومفتاح الطوارئ، وليس مجرد زينة.', coachGot: 'حسناً' },
-  pt: { coachTitle: 'O menu real fica aqui', coachBody: 'Arquivo esconde idioma, compartilhar e a tecla de pânico, não é enfeite.', coachGot: 'Entendi' },
-  ru: { coachTitle: 'Настоящее меню здесь', coachBody: 'В «Файле» спрятаны язык, отправка и кнопка паники — это не декор.', coachGot: 'Понятно' },
-  ja: { coachTitle: '本物のメニューはここ', coachBody: 'ファイルに言語・共有・パニックキーが隠れています。飾りではありません。', coachGot: 'OK' },
-  fr: { coachTitle: 'Le vrai menu est ici', coachBody: 'Fichier cache la langue, le partage et la touche panique, pas qu’un décor.', coachGot: 'Compris' },
-  de: { coachTitle: 'Das echte Menü ist hier', coachBody: 'Datei verbirgt Sprache, Teilen und die Panik-Taste — keine Deko.', coachGot: 'Alles klar' },
+  en: { coachTitle: 'Real menu lives here', coachBody: 'This spot opens the real menu — language, share link, boss key, everything.', coachGot: 'Got it' },
+  zh: { coachTitle: '真正的菜单在这里', coachBody: '点这里打开真菜单——语言、分享、一键老板键都藏在里面。', coachGot: '知道了' },
+  es: { coachTitle: 'El menú real está aquí', coachBody: 'Aquí se abre el menú real: idioma, compartir y la tecla del jefe.', coachGot: 'Entendido' },
+  hi: { coachTitle: 'असली मेन्यू यहाँ है', coachBody: 'यहाँ असली मेन्यू खुलता है — भाषा, शेयर और बॉस-की सब यहीं हैं।', coachGot: 'समझ गया' },
+  ar: { coachTitle: 'القائمة الحقيقية هنا', coachBody: 'من هنا تُفتح القائمة الحقيقية — اللغة والمشاركة وزر المدير.', coachGot: 'حسناً' },
+  pt: { coachTitle: 'O menu real fica aqui', coachBody: 'Aqui abre o menu real: idioma, compartilhar e a tecla do chefe.', coachGot: 'Entendi' },
+  ru: { coachTitle: 'Настоящее меню здесь', coachBody: 'Здесь открывается настоящее меню — язык, ссылка и босс-клавиша.', coachGot: 'Понятно' },
+  ja: { coachTitle: '本物のメニューはここ', coachBody: 'ここから本物のメニューが開きます。言語・共有・ボスキーはこの中に。', coachGot: 'OK' },
+  fr: { coachTitle: 'Le vrai menu est ici', coachBody: 'Le vrai menu s’ouvre ici : langue, partage et touche patron.', coachGot: 'Compris' },
+  de: { coachTitle: 'Das echte Menü ist hier', coachBody: 'Hier öffnet sich das echte Menü — Sprache, Teilen und Chef-Taste.', coachGot: 'Alles klar' },
 }
 for (const code of LANGS) Object.assign(messages[code], coachKeys[code])
 

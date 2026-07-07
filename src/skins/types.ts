@@ -26,6 +26,12 @@ export type SkinDefinition = {
   i18nNames?: Partial<Record<Lang, SkinLocaleName>>
   /** The disguise. Receives the document to render as that app. */
   Surface: ComponentType<{ doc: DocumentRecord }>
+  /**
+   * The real app's brand mark, for the home gallery / menus. Optional — the
+   * built-in skins keep theirs in src/logos.tsx; a contributed skin ships its
+   * own so it never edits shared files.
+   */
+  Logo?: ComponentType<{ size?: number; className?: string }>
 }
 
 export type SkinModule = { default: SkinDefinition }

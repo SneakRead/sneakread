@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { WordLogo, ExcelLogo } from '../../logos'
 import { safeHttpUrl } from '../../core/content'
+import { aliasInitial } from '../../core/alias'
 import { lang } from '../../i18n'
 import { skinLabel } from '../labels'
 import { useSkinControls } from '../controls'
@@ -100,6 +101,11 @@ export function MarkdownContent({ markdown, baseUrl }: { markdown: string; baseU
         },
         img: ({ alt, src }) => {
           const safeSrc = safeHttpUrl(src, baseUrl)
+          // QR codes / app-download banners are pure scrape noise — and a giant
+          // QR code is the last thing a "work document" should open on.
+          if (safeSrc && /qr[-_]?code|qrcode|erweima|二维码|扫码|app[-_]?download|download[-_]?app/i.test(`${alt ?? ''} ${safeSrc}`)) {
+            return null
+          }
           // Scraped images are often hotlink/referrer-protected; no-referrer lifts the
           // success rate, and a failed load collapses (display:none) instead of showing
           // a browser broken-image glyph — the loudest "this is a web reader" tell.
@@ -339,7 +345,7 @@ export function MsTitleBar({ fileName, app, accent }: { fileName: string; app: s
         <span className="ms-search-kbd">Alt+Q</span>
       </div>
       <div className="ms-titlebar-right">
-        <span className="ms-account">M</span>
+        <span className="ms-account">{aliasInitial()}</span>
         <WindowButtons />
       </div>
     </div>
@@ -504,11 +510,26 @@ export function WordFrame({
       <div className="word-ruler" aria-hidden="true" />
       <div className="paper-canvas">{children}</div>
       <div className="ms-status word-status">
-        <span>Page 1 of 4</span>
-        <span>{statusWords ?? 0} words</span>
-        <span>English (US)</span>
+        <span>{lang === 'zh' ? '页面：1/4' : 'Page 1 of 4'}</span>
+        <span>{lang === 'zh' ? `字数：${statusWords ?? 0}` : `${statusWords ?? 0} words`}</span>
+        <span>{WORD_STATUS_LANG[lang] ?? 'English (US)'}</span>
         <span className="ms-status-right">100%</span>
       </div>
     </div>
   )
+}
+
+// Word shows the proofing language of the document — an English status bar
+// under a Chinese document is a quiet giveaway. Keyed by UI language.
+const WORD_STATUS_LANG: Record<string, string> = {
+  en: 'English (US)',
+  zh: '中文(中国)',
+  es: 'Español (España)',
+  hi: 'हिन्दी (भारत)',
+  ar: 'العربية',
+  pt: 'Português (Brasil)',
+  ru: 'Русский (Россия)',
+  ja: '日本語',
+  fr: 'Français (France)',
+  de: 'Deutsch (Deutschland)',
 }

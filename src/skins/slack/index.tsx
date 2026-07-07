@@ -1,6 +1,7 @@
 import type { DocumentRecord } from '../../core/types'
 import type { SkinDefinition } from '../types'
-import { articleBody, getSiteLabel } from '../../core/content'
+import { articleBody, clockLabel, getSiteLabel, minutesAgo } from '../../core/content'
+import { aliasInitial } from '../../core/alias'
 import { MarkdownContent, SkinSwitcher, splitMarkdownForChat } from '../shared'
 import {
   Search,
@@ -49,15 +50,6 @@ function hueOf(seed: string) {
   for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0
   return h % 360
 }
-// Staggered but deterministic timestamps: 9:02, 9:05, 9:09, …
-function stampAt(i: number) {
-  const total = 9 * 60 + 2 + i * 4
-  const h = Math.floor(total / 60)
-  const m = total % 60
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hr = h % 12 === 0 ? 12 : h % 12
-  return `${hr}:${String(m).padStart(2, '0')} ${ampm}`
-}
 
 export function SlackSkin({ doc }: { doc: DocumentRecord }) {
   const body = articleBody(doc)
@@ -65,13 +57,19 @@ export function SlackSkin({ doc }: { doc: DocumentRecord }) {
   const author = doc.projectName || site
   const initial = author.trim().charAt(0).toUpperCase()
   const hue = hueOf(author)
-  const channel =
-    doc.title
-      .toLowerCase()
-      .replace(/[^\p{L}\p{N}]+/gu, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 22) || 'reading'
+  let channel = doc.title
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
+    .replace(/^-+|-+$/g, '')
+  if (channel.length > 22) {
+    // Trim at a segment boundary — "#world-cup-2026-is-balo" reads fake.
+    channel = channel.slice(0, 22).replace(/-[^-]*$/, '') || channel.slice(0, 22)
+  }
+  if (!channel) channel = 'reading'
   const chunks = splitMarkdownForChat(body)
+  // Real, recent clock times: the run of messages ends a few minutes ago.
+  const stampAt = (i: number) =>
+    clockLabel(minutesAgo(6 + (chunks.length - 1 - i) * 3), { ampm: true })
   const workspace = 'Project HQ'
 
   return (
@@ -111,7 +109,7 @@ export function SlackSkin({ doc }: { doc: DocumentRecord }) {
               <Plus size={20} />
             </button>
             <span className="sl-rail-me" style={{ background: `hsl(${hue} 55% 42%)` }}>
-              {initial}
+              {aliasInitial(initial)}
               <em className="sl-presence" />
             </span>
           </div>

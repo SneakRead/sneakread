@@ -12,6 +12,11 @@ export type SkinId =
   | 'slack'
   | 'lark'
   | 'notion'
+  | 'claude-code'
+  | 'dingtalk'
+  | 'wps'
+  | 'teams'
+  | 'gmail'
 export type LoadState = 'idle' | 'loading' | 'ready' | 'error'
 export type PageKind = 'home' | 'list' | 'article' | 'unknown'
 

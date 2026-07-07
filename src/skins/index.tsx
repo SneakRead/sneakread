@@ -1,5 +1,6 @@
 import type { SkinDefinition } from './types'
 import type { Skin, SkinId } from '../core/types'
+import { SkinLogo as BuiltinLogo } from '../logos'
 
 // Auto-discover every skin: any src/skins/<name>/index.tsx that default-exports a
 // SkinDefinition is registered. Drop in a folder — no central list to edit.
@@ -22,13 +23,18 @@ for (const mod of Object.values(modules)) {
 const ORDER: SkinId[] = [
   'word',
   'vscode',
+  'claude-code',
   'docs',
   'notion',
   'lark-docs',
   'slack',
   'lark',
+  'dingtalk',
+  'wps',
   'excel',
   'outlook',
+  'teams',
+  'gmail',
 ]
 const rank = (id: SkinId) => {
   const i = ORDER.indexOf(id)
@@ -55,4 +61,21 @@ export const skinById = (id: SkinId): Skin => skins.find((s) => s.id === id) ?? 
 
 export function getSkin(id: SkinId): SkinDefinition | undefined {
   return byId.get(id)
+}
+
+// Brand-mark dispatcher: a skin that ships its own `Logo` wins; the built-in
+// skins fall back to the shared set in src/logos.tsx. Contributed skins never
+// have to touch shared files.
+export function SkinBrandLogo({
+  id,
+  size = 26,
+  className,
+}: {
+  id: SkinId
+  size?: number
+  className?: string
+}) {
+  const Logo = byId.get(id)?.Logo
+  if (Logo) return <Logo size={size} className={className} />
+  return <BuiltinLogo id={id} size={size} className={className} />
 }

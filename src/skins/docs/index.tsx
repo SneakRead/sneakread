@@ -3,6 +3,7 @@ import type { SkinDefinition } from '../types'
 import { articleBody } from '../../core/content'
 import { MSym, MarkdownContent, SkinSwitcher } from '../shared'
 import { DocsLogo } from '../../logos'
+import { aliasInitial } from '../../core/alias'
 
 // ===== BLOCK APPENDED BELOW =====
 const gdMenus = ['File', 'Edit', 'View', 'Insert', 'Format', 'Tools', 'Extensions', 'Help']
@@ -47,7 +48,7 @@ export function DocsSkin({ doc }: { doc: DocumentRecord }) {
           <button type="button" className="gdocs-share">
             <MSym name="lock" /> Share
           </button>
-          <span className="gdocs-avatar">M</span>
+          <span className="gdocs-avatar">{aliasInitial()}</span>
         </div>
       </div>
       <div className="gdocs-toolbar">

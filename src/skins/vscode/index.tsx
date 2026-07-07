@@ -5,6 +5,7 @@ import type { SkinDefinition } from '../types'
 import { articleBody, getSiteLabel } from '../../core/content'
 import { Codicon, MarkdownContent, CodeEditor, SkinSwitcher } from '../shared'
 import { VscodeLogo } from '../../logos'
+import { lang } from '../../i18n'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
 // Monaco (the real VS Code editor) is lazy-loaded so its ~1MB only downloads
@@ -79,8 +80,69 @@ export function ActivityBar() {
 
 // Easter-egg files a curious user can click in the Explorer. They open in the
 // code editor just like a real source file — in-character dev humor that also
-// teaches the app's hidden controls.
-const vscodeEggs: Record<string, string> = {
+// teaches the app's hidden controls. Localized: a Chinese reader finding
+// English-only jokes is its own disguise break.
+const vscodeEggsZh: Record<string, string> = {
+  'README.md': `# SneakRead · 摸鱼
+
+在工位上读完整个互联网，伪装成你本来就开着的那些软件。
+
+## 为什么
+因为"我在看文档"这句话，应该更经常是真的。
+
+## 怎么用
+1. 粘贴一个网址。
+2. 挑一个伪装——VS Code、Word、飞书、Notion、钉钉、Excel……
+3. 有人走过来的瞬间，按 \`Esc\`。
+
+## 说明
+- 100% 本地运行，没有服务器知道你读了什么。
+- 阅读源自动切换：Jina -> Firecrawl，哪个通用哪个。
+
+MIT 开源。现在，去读点什么吧。`,
+  'FAQ.md': `# 摸鱼 — 常见问题
+
+## 这算摸鱼吗？
+这算*阅读*。你已经盯着同一个工单发呆 40 分钟了——读点东西反而更诚实。
+
+## 老板能看出来吗？
+除非他有凑近读 Markdown 源码的爱好。他走近时按 **Esc**，屏幕瞬间变成 Q3 预算表。
+
+## 会上传我的数据吗？
+没有后端。一切都在你的浏览器里。你的阅读清单只属于你。
+
+## 开大会用哪个伪装最好？
+Excel。没人敢打断一个对着表格皱眉的人。`,
+  'TODO.md': `# TODO
+
+- [x] 打开电脑
+- [x] 摆出专注的表情
+- [x] 再读一篇（就一篇）
+- [ ] 回复那封邮件
+- [ ] 正经工作
+- [x] 续杯咖啡
+- [ ] 别再刷世界杯了   <- 世界杯而已，不怪我`,
+  '.secrets.md': `# 你发现了秘密文件
+
+直觉不错。这里是没人告诉你的：
+
+- **Esc** —— 一键切成预算表，再按一次切回来。
+- **Cmd/Ctrl + K** —— 不碰鼠标就能打开任何网址。
+- 文章里的每个链接都能点，边读边逛，全程不脱伪装。
+- **文件**菜单是真的：语言、分享链接、失焦自动隐藏，都在里面。
+
+好了，装作无事发生。
+
+---
+
+_SneakRead 是真开源（MIT）——这年头不多了。点个 star：_
+_https://github.com/SneakRead/sneakread_
+
+_作者：刘小排 · 公众号 刘小排r · X @bourneliu66_
+_我还做了 Raphael AI —— 免费 AI 生图 —— https://raphael.app_`,
+}
+
+const vscodeEggsEn: Record<string, string> = {
   'README.md': `# SneakRead
 
 Read the entire web at your desk, disguised as the tools you already have open.
@@ -141,6 +203,8 @@ _https://github.com/SneakRead/sneakread_
 _Built by 刘小排 (Liu Xiaopai) · WeChat 刘小排r · X @bourneliu66_
 _Also by me: Raphael AI — free AI image generation — https://raphael.app_`,
 }
+
+const vscodeEggs = lang === 'zh' ? vscodeEggsZh : vscodeEggsEn
 
 // Approximate VS Code's default (Seti) file-icon theme: a per-extension glyph
 // with the theme's signature colors, so the tree reads like the real Explorer.

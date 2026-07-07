@@ -1,8 +1,9 @@
 import type { LucideIcon } from 'lucide-react'
 import type { DocumentRecord } from '../../core/types'
 import type { SkinDefinition } from '../types'
-import { articleBody } from '../../core/content'
-import { MarkdownContent, SkinSwitcher } from '../shared'
+import { articleBody, clockLabel, daysAgoLabel, minutesAgo } from '../../core/content'
+import { aliasInitial } from '../../core/alias'
+import { MarkdownContent, SkinSwitcher, splitMarkdownForChat } from '../shared'
 import { LarkLogo } from '../../logos'
 import { lang } from '../../i18n'
 import {
@@ -91,24 +92,26 @@ const STRIP = [
   { name: { zh: '产品组', en: 'Product' }, hue: 200, group: true },
   { name: { zh: '全员', en: 'All' }, hue: 330, group: true },
 ]
+// `days` = how many days back the conversation was last active; the label is
+// derived from the real clock at render time so nothing ever sits in the future.
 const CHATS = {
   zh: [
-    { name: '季度规划文档', tag: '外部', tagKind: 'ext', preview: '一份文档已共享给你', time: '昨天', doc: true },
-    { name: '审批中心', tag: '机器人', tagKind: 'bot', preview: '一条审批待你处理', time: '昨天', hue: 200 },
-    { name: '安全中心', tag: '机器人', tagKind: 'bot', preview: '新设备登录提醒', time: '7月5日', hue: 150, badge: 2 },
-    { name: '工作台助手', tag: '官方', tagKind: 'gov', preview: '本周待办已为你整理好', time: '7月3日', hue: 222, badge: 7 },
-    { name: '邮件助手', tag: '机器人', tagKind: 'bot', preview: '你有 3 封未读邮件', time: '6月27日', hue: 268 },
-    { name: '日程助手', tag: '机器人', tagKind: 'bot', preview: '明天 10:00 产品评审会', time: '6月24日', hue: 205 },
-    { name: '周报机器人', tag: '机器人', tagKind: 'bot', preview: '记得提交本周周报', time: '6月23日', hue: 24 },
+    { name: '季度规划文档', tag: '外部', tagKind: 'ext', preview: '一份文档已共享给你', days: 1, doc: true },
+    { name: '审批中心', tag: '机器人', tagKind: 'bot', preview: '一条审批待你处理', days: 1, hue: 200 },
+    { name: '安全中心', tag: '机器人', tagKind: 'bot', preview: '新设备登录提醒', days: 2, hue: 150, badge: 2 },
+    { name: '工作台助手', tag: '官方', tagKind: 'gov', preview: '本周待办已为你整理好', days: 4, hue: 222, badge: 7 },
+    { name: '邮件助手', tag: '机器人', tagKind: 'bot', preview: '你有 3 封未读邮件', days: 10, hue: 268 },
+    { name: '日程助手', tag: '机器人', tagKind: 'bot', preview: '明天 10:00 产品评审会', days: 13, hue: 205 },
+    { name: '周报机器人', tag: '机器人', tagKind: 'bot', preview: '记得提交本周周报', days: 14, hue: 24 },
   ],
   en: [
-    { name: 'Quarterly plan', tag: 'External', tagKind: 'ext', preview: 'A doc was shared with you', time: 'Yesterday', doc: true },
-    { name: 'Approvals', tag: 'Bot', tagKind: 'bot', preview: 'One approval awaits you', time: 'Yesterday', hue: 200 },
-    { name: 'Security Center', tag: 'Bot', tagKind: 'bot', preview: 'New device sign-in alert', time: 'Jul 5', hue: 150, badge: 2 },
-    { name: 'Workplace Assistant', tag: 'Official', tagKind: 'gov', preview: 'Your to-dos for the week are ready', time: 'Jul 3', hue: 222, badge: 7 },
-    { name: 'Mail Assistant', tag: 'Bot', tagKind: 'bot', preview: 'You have 3 unread emails', time: 'Jun 27', hue: 268 },
-    { name: 'Calendar Assistant', tag: 'Bot', tagKind: 'bot', preview: 'Tomorrow 10:00 product review', time: 'Jun 24', hue: 205 },
-    { name: 'Weekly-report Bot', tag: 'Bot', tagKind: 'bot', preview: 'Remember to submit this week’s report', time: 'Jun 23', hue: 24 },
+    { name: 'Quarterly plan', tag: 'External', tagKind: 'ext', preview: 'A doc was shared with you', days: 1, doc: true },
+    { name: 'Approvals', tag: 'Bot', tagKind: 'bot', preview: 'One approval awaits you', days: 1, hue: 200 },
+    { name: 'Security Center', tag: 'Bot', tagKind: 'bot', preview: 'New device sign-in alert', days: 2, hue: 150, badge: 2 },
+    { name: 'Workplace Assistant', tag: 'Official', tagKind: 'gov', preview: 'Your to-dos for the week are ready', days: 4, hue: 222, badge: 7 },
+    { name: 'Mail Assistant', tag: 'Bot', tagKind: 'bot', preview: 'You have 3 unread emails', days: 10, hue: 268 },
+    { name: 'Calendar Assistant', tag: 'Bot', tagKind: 'bot', preview: 'Tomorrow 10:00 product review', days: 13, hue: 205 },
+    { name: 'Weekly-report Bot', tag: 'Bot', tagKind: 'bot', preview: 'Remember to submit this week’s report', days: 14, hue: 24 },
   ],
 }
 
@@ -120,6 +123,10 @@ export function LarkSkin({ doc }: { doc: DocumentRecord }) {
   const chats = zh ? CHATS.zh : CHATS.en
   const sender = doc.projectName || (zh ? '行业资讯' : 'Daily Digest')
   const group = zh ? '项目协作群' : 'Project Team'
+  // A real chat never carries a 5000-word single message — split the article
+  // into a believable run of messages. Stamp = a few minutes ago, never future.
+  const chunks = splitMarkdownForChat(body, { targetChars: 700, maxChunks: 10 })
+  const stamp = clockLabel(minutesAgo(4))
   const TABS = [
     { label: zh ? '消息' : 'Messages', Icon: MessageSquare, active: true },
     { label: zh ? '云文档' : 'Docs', Icon: FileText },
@@ -132,7 +139,7 @@ export function LarkSkin({ doc }: { doc: DocumentRecord }) {
       {/* Zone 1 — wide labeled nav sidebar */}
       <nav className="lk-nav">
         <div className="lk-nav-top">
-          <span className="lk-nav-me">M</span>
+          <span className="lk-nav-me">{aliasInitial()}</span>
           <button type="button" className="lk-nav-add" aria-label="New">
             <Plus size={18} />
           </button>
@@ -210,7 +217,7 @@ export function LarkSkin({ doc }: { doc: DocumentRecord }) {
             <div className="lk-chat-main">
               <div className="lk-chat-top">
                 <span className="lk-chat-name">{group}</span>
-                <span className="lk-chat-time">14:10</span>
+                <span className="lk-chat-time">{stamp}</span>
               </div>
               <div className="lk-chat-preview">
                 <span>{sender}: {doc.title}</span>
@@ -230,7 +237,7 @@ export function LarkSkin({ doc }: { doc: DocumentRecord }) {
                 <div className="lk-chat-top">
                   <span className="lk-chat-name">{c.name}</span>
                   {c.tag ? <span className={`lk-tag lk-tag-${c.tagKind}`}>{c.tag}</span> : null}
-                  <span className="lk-chat-time">{c.time}</span>
+                  <span className="lk-chat-time">{daysAgoLabel(c.days, zh)}</span>
                 </div>
                 <div className="lk-chat-preview">
                   <span>{c.preview}</span>
@@ -275,27 +282,35 @@ export function LarkSkin({ doc }: { doc: DocumentRecord }) {
 
         <div className="lk-thread">
           <SkinSwitcher className="lk-switch" />
-          <div className="lk-date">{t.today} 14:10</div>
+          <div className="lk-date">{t.today} {stamp}</div>
 
-          {/* the article, shared into the group as one long message */}
-          <div className="lk-msg">
-            <span className="lk-msg-av" style={{ background: '#eef3ff' }}>
-              <LarkLogo size={30} />
-            </span>
-            <div className="lk-msg-col">
-              <div className="lk-msg-sender">
-                <span className="lk-msg-name">{sender}</span>
-                <span className="lk-tag lk-tag-gov">{t.official}</span>
-                <span className="lk-msg-time">14:10</span>
-              </div>
-              <div className="lk-bubble lk-bubble-in">
-                <article className="lk-post markdown-body">
-                  <h1 className="lk-post-title">{doc.title}</h1>
-                  <MarkdownContent markdown={body} baseUrl={doc.sourceUrl} />
-                </article>
+          {/* the article, shared into the group as a believable run of messages */}
+          {chunks.map((chunk, index) => (
+            <div key={index} className="lk-msg">
+              {index === 0 ? (
+                <span className="lk-msg-av" style={{ background: '#eef3ff' }}>
+                  <LarkLogo size={30} />
+                </span>
+              ) : (
+                <span className="lk-msg-av lk-msg-av-ghost" aria-hidden="true" />
+              )}
+              <div className="lk-msg-col">
+                {index === 0 && (
+                  <div className="lk-msg-sender">
+                    <span className="lk-msg-name">{sender}</span>
+                    <span className="lk-tag lk-tag-gov">{t.official}</span>
+                    <span className="lk-msg-time">{stamp}</span>
+                  </div>
+                )}
+                <div className="lk-bubble lk-bubble-in">
+                  <article className="lk-post markdown-body">
+                    {index === 0 && <h1 className="lk-post-title">{doc.title}</h1>}
+                    <MarkdownContent markdown={chunk} baseUrl={doc.sourceUrl} />
+                  </article>
+                </div>
               </div>
             </div>
-          </div>
+          ))}
 
           {/* one short own reply, for authenticity */}
           <div className="lk-msg lk-msg-own">

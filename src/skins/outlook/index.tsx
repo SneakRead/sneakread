@@ -2,7 +2,8 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { DocumentRecord } from '../../core/types'
 import type { SkinDefinition } from '../types'
-import { getSiteLabel, emailBody, formatBytes } from '../../core/content'
+import { getSiteLabel, emailBody, formatBytes, clockLabel, parseTimestamp } from '../../core/content'
+import { aliasInitial } from '../../core/alias'
 import { MarkdownContent, WindowButtons, SkinSwitcher } from '../shared'
 import { OutlookLogo } from '../../logos'
 import { Bell, Paperclip } from 'lucide-react'
@@ -60,12 +61,27 @@ const olFolders: { label: string; icon: ReactNode; count?: number; active?: bool
   { label: 'Archive', icon: <Folder20Regular /> },
 ]
 
+// `days` = days back; the visible weekday label comes from the real calendar.
 const olOthers = [
-  { from: 'Finance Ops', subject: 'Q3 budget follow-up', preview: 'Sharing the latest numbers before…', day: 'Tue', hue: 168 },
-  { from: 'Design Team', subject: 'Design review notes', preview: 'Great session today — action items…', day: 'Mon', hue: 268 },
-  { from: 'Vendor Ops', subject: 'Vendor renewal', preview: 'The contract is up for renewal on…', day: 'Mon', hue: 24 },
-  { from: 'Analytics', subject: 'Weekly metrics digest', preview: 'Your dashboards refreshed overnight…', day: 'Sun', hue: 210 },
+  { from: 'Finance Ops', subject: 'Q3 budget follow-up', preview: 'Sharing the latest numbers before…', days: 1, hue: 168 },
+  { from: 'Design Team', subject: 'Design review notes', preview: 'Great session today — action items…', days: 2, hue: 268 },
+  { from: 'Vendor Ops', subject: 'Vendor renewal', preview: 'The contract is up for renewal on…', days: 2, hue: 24 },
+  { from: 'Analytics', subject: 'Weekly metrics digest', preview: 'Your dashboards refreshed overnight…', days: 3, hue: 210 },
 ]
+
+function weekdayLabel(daysBack: number) {
+  return new Date(Date.now() - daysBack * 86_400_000).toLocaleDateString('en-US', {
+    weekday: 'short',
+  })
+}
+
+// Outlook writes reading-pane dates as "Mon 7/7/2026 10:14 AM".
+function outlookDate(value: string | undefined) {
+  const d = parseTimestamp(value)
+  const day = d.toLocaleDateString('en-US', { weekday: 'short' })
+  const date = d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })
+  return `${day} ${date} ${clockLabel(d, { ampm: true })}`
+}
 
 export function OutlookSkin({ doc }: { doc: DocumentRecord }) {
   const site = getSiteLabel(doc.sourceUrl)
@@ -93,7 +109,7 @@ export function OutlookSkin({ doc }: { doc: DocumentRecord }) {
           <button type="button" className="ol-appbar-ic" aria-label="Help">
             <QuestionCircle24Regular />
           </button>
-          <span className="ol-me">M</span>
+          <span className="ol-me">{aliasInitial()}</span>
           <WindowButtons />
         </div>
       </div>
@@ -178,7 +194,7 @@ export function OutlookSkin({ doc }: { doc: DocumentRecord }) {
             <div className="ol-msg-main">
               <div className="ol-msg-top">
                 <strong>{site}</strong>
-                <small>{doc.fetchedAt.slice(-5)}</small>
+                <small>{clockLabel(parseTimestamp(doc.fetchedAt), { ampm: true })}</small>
               </div>
               <div className="ol-msg-subject">{doc.title}</div>
               <div className="ol-msg-preview">
@@ -195,7 +211,7 @@ export function OutlookSkin({ doc }: { doc: DocumentRecord }) {
               <div className="ol-msg-main">
                 <div className="ol-msg-top">
                   <strong>{msg.from}</strong>
-                  <small>{msg.day}</small>
+                  <small>{weekdayLabel(msg.days)}</small>
                 </div>
                 <div className="ol-msg-subject">{msg.subject}</div>
                 <div className="ol-msg-preview">{msg.preview}</div>
@@ -227,7 +243,7 @@ export function OutlookSkin({ doc }: { doc: DocumentRecord }) {
                 <strong>{site}</strong>
                 <span>To: Strategy Team</span>
               </div>
-              <small>{doc.fetchedAt}</small>
+              <small>{outlookDate(doc.fetchedAt)}</small>
             </div>
             <div className="ol-attach">
               <Bell size={13} aria-hidden="true" /> Scanned by Safe Links ·{' '}

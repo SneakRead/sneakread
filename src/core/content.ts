@@ -128,10 +128,53 @@ export function emailBody(doc: DocumentRecord) {
   ].join('\n')
 }
 
+// Initialism domains that read wrong when title-cased ("Bbc" screams fake).
+const ACRONYM_SITES = new Set([
+  'bbc', 'cnn', 'espn', 'nba', 'nfl', 'mlb', 'nhl', 'ufc', 'wwe', 'ign',
+  'gq', 'npr', 'wsj', 'nyt', 'abc', 'cbs', 'nbc', 'itv', 'rte', 'cnbc',
+])
+
 export function inferProjectName(url: string) {
   const site = getSiteLabel(url)
   const root = site.split('.').slice(-2, -1)[0] || site
+  if (root.length <= 4 && (ACRONYM_SITES.has(root.toLowerCase()) || !/[aeiouy]/i.test(root))) {
+    return root.toUpperCase()
+  }
   return `${root.charAt(0).toUpperCase()}${root.slice(1)}`
+}
+
+/* ------------------------------------------------------------------ *
+ * Believable "recent activity" clocks for disguise chrome. Derived from the
+ * real current time so a skin never shows a timestamp in the future — the
+ * loudest tell of a fake. Pure helpers; skins call them at render time.
+ * ------------------------------------------------------------------ */
+
+export function minutesAgo(minutes: number) {
+  return new Date(Date.now() - minutes * 60_000)
+}
+
+export function clockLabel(date: Date, opts?: { ampm?: boolean }) {
+  const h = date.getHours()
+  const m = String(date.getMinutes()).padStart(2, '0')
+  if (!opts?.ampm) return `${String(h).padStart(2, '0')}:${m}`
+  const suffix = h >= 12 ? 'PM' : 'AM'
+  const hr = h % 12 === 0 ? 12 : h % 12
+  return `${hr}:${m} ${suffix}`
+}
+
+// "Jul 3" / "7月3日" style short labels for sidebar lists, N days back.
+export function daysAgoLabel(daysBack: number, zh: boolean) {
+  const d = new Date(Date.now() - daysBack * 86_400_000)
+  if (zh) return daysBack === 1 ? '昨天' : `${d.getMonth() + 1}月${d.getDate()}日`
+  if (daysBack === 1) return 'Yesterday'
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+// Parse a stored DocumentRecord timestamp ("07/07/2026, 10:14"); fall back to
+// now rather than "Invalid Date" leaking into chrome.
+export function parseTimestamp(value: string | undefined) {
+  const d = value ? new Date(value) : new Date()
+  return Number.isNaN(d.getTime()) ? new Date() : d
 }
 
 export function formatBytes(bytes = 0) {

@@ -11,6 +11,7 @@ import {
 } from '../../core/content'
 import { MsTitleBar, MsRibbonTabs, MsRibbonRight, MarkdownContent, SkinSwitcher } from '../shared'
 import { ExcelLogo } from '../../logos'
+import { lang } from '../../i18n'
 import {
   ClipboardPaste24Regular,
   Cut20Regular,
@@ -537,7 +538,7 @@ function BudgetChart({ rev, ebitda }: { rev: number[]; ebitda: number[] }) {
   return (
     <svg className="xl-chart-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Revenue vs EBITDA">
       <text className="xl-chart-title" x={padL} y={16}>
-        Revenue vs. EBITDA ($000s)
+        {lang === 'zh' ? '收入与 EBITDA（千元）' : 'Revenue vs. EBITDA ($000s)'}
       </text>
       {ticks.map((tk) => (
         <g key={tk}>
@@ -576,7 +577,7 @@ function BudgetChart({ rev, ebitda }: { rev: number[]; ebitda: number[] }) {
           y={H - 8}
           textAnchor="middle"
         >
-          {mm[0]}
+          {lang === 'zh' ? String(m + 1) : mm[0]}
         </text>
       ))}
     </svg>
@@ -652,16 +653,85 @@ function buildHeadcountSheet(): BCell[][] {
   ]
 }
 
+// The boss sheet speaks the office's language — every label (never a formula
+// or number) is swapped through this dictionary when the UI runs in Chinese.
+const ZH_BUDGET: Record<string, string> = {
+  'FY2026 Operating Budget — Q3 Reforecast   ($000s)': 'FY2026 经营预算 — Q3 重估（千元）',
+  'Line item': '项目',
+  Jan: '1月', Feb: '2月', Mar: '3月', Apr: '4月', May: '5月', Jun: '6月',
+  Jul: '7月', Aug: '8月', Sep: '9月', Oct: '10月', Nov: '11月', Dec: '12月',
+  Revenue: '收入',
+  '  Subscription': '  订阅收入',
+  '  Services': '  服务收入',
+  '  Marketplace': '  平台收入',
+  'Total Revenue': '收入合计',
+  'Cost of Revenue': '营业成本',
+  '  Cloud & Hosting': '  云与托管',
+  '  Payment Fees': '  支付手续费',
+  'Total COGS': '成本合计',
+  'Gross Profit': '毛利',
+  'Gross Margin %': '毛利率 %',
+  'Operating Expenses': '运营费用',
+  '  Salaries & Benefits': '  薪酬福利',
+  '  Sales & Marketing': '  销售与市场',
+  '  Research & Development': '  研发费用',
+  '  General & Admin': '  行政管理',
+  '  Travel & Events': '  差旅与活动',
+  '  Software & Tools': '  软件与工具',
+  'Total OpEx': '费用合计',
+  'EBITDA Margin %': 'EBITDA 利润率 %',
+  'Headcount (EOP)': '期末人数',
+  'Cash Balance': '现金余额',
+  'Planning Assumptions — FY2026': '经营假设 — FY2026',
+  Driver: '驱动项', Basis: '口径', Value: '数值', Owner: '负责人',
+  'Subscription MoM growth': '订阅收入月增速',
+  'Services MoM growth': '服务收入月增速',
+  'Gross margin target': '目标毛利率',
+  'Logo churn (annual)': '客户流失率（年）',
+  'Blended ARPA ($)': '平均客单价（$）',
+  'Cloud cost / $ revenue': '云成本 / 收入占比',
+  'Fully-loaded cost / head ($)': '人均全成本（$）',
+  'Starting cash ($000s)': '期初现金（千元）',
+  'FX rate (EUR/USD)': '汇率（EUR/USD）',
+  'Net new ARR': '净新增 ARR', Utilization: '人员利用率', Blended: '综合口径',
+  Cohort: '同期群', 'Price book': '价格表', 'Committed use': '承诺用量',
+  'Comp band': '薪酬档位', Bank: '银行对账', 'Hedged 60%': '已对冲 60%',
+  RevOps: '收入运营', Delivery: '交付', Finance: '财务', CS: '客户成功',
+  Platform: '平台', People: '人力', Treasury: '资金',
+  'Headcount Plan by Department': '各部门人员编制计划',
+  Department: '部门', 'Net adds': '净增',
+  Engineering: '研发', 'Product & Design': '产品与设计', Sales: '销售',
+  Marketing: '市场', 'Customer Success': '客户成功', 'G&A': '行政',
+  'Total Headcount': '人数合计',
+}
+
+const ZH_SHEETS: Record<string, string> = {
+  'FY26 P&L': 'FY26 损益',
+  Assumptions: '经营假设',
+  Headcount: '人员编制',
+}
+
+function localizeBudgetGrid(grid: BCell[][]): BCell[][] {
+  return grid.map((row) =>
+    row.map((cell) => (cell.t && ZH_BUDGET[cell.t] ? { ...cell, t: ZH_BUDGET[cell.t] } : cell)),
+  )
+}
+
 export function ExcelBudgetSkin({ doc }: { doc: DocumentRecord }) {
   const model = useMemo(() => buildBudget(), [])
-  const sheets = useMemo(
-    () => [
+  const sheets = useMemo(() => {
+    const base = [
       { name: 'FY26 P&L', grid: model.grid, chart: true },
       { name: 'Assumptions', grid: budgetAssumptions, chart: false },
       { name: 'Headcount', grid: buildHeadcountSheet(), chart: false },
-    ],
-    [model],
-  )
+    ]
+    if (lang !== 'zh') return base
+    return base.map((sheet) => ({
+      ...sheet,
+      name: ZH_SHEETS[sheet.name] ?? sheet.name,
+      grid: localizeBudgetGrid(sheet.grid),
+    }))
+  }, [model])
   const [active, setActive] = useState(0)
   // Selected cell drives the Name Box + formula bar (defaults to the EBITDA FY cell).
   const [sel, setSel] = useState<{ r: number; c: number }>({ r: 25, c: 13 })

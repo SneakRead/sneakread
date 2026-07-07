@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import type { DocumentRecord } from '../../core/types'
 import type { SkinDefinition } from '../types'
-import { articleBody, getSiteLabel } from '../../core/content'
+import { articleBody, getSiteLabel, parseTimestamp } from '../../core/content'
+import { getAlias } from '../../core/alias'
 import { MarkdownContent, SkinSwitcher } from '../shared'
 import { NotionLogo } from '../../logos'
 import { lang } from '../../i18n'
@@ -118,6 +119,15 @@ function NavIcon({ children }: { children: ReactNode }) {
   return <span className="nt-nav-ic">{children}</span>
 }
 
+// Notion writes property dates as "July 7, 2026 10:14 AM" — the stored
+// "07/07/2026, 10:14" format is a dead giveaway.
+function notionDate(value: string | undefined) {
+  const d = parseTimestamp(value)
+  const date = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+  return `${date} ${time}`
+}
+
 function PageRow({ icon, name, views, indent }: { icon: string; name: string; views?: boolean; indent?: boolean }) {
   return (
     <>
@@ -149,7 +159,8 @@ export function NotionSkin({ doc }: { doc: DocumentRecord }) {
   const recents = zh ? RECENTS.zh : RECENTS.en
   const favorites = zh ? FAVORITES.zh : FAVORITES.en
   const dbRows = zh ? DB_ROWS.zh : DB_ROWS.en
-  const workspace = 'My Notion'
+  const alias = getAlias()
+  const workspace = alias ? `${alias}'s Notion` : 'My Notion'
   const dbName = zh ? '阅读记事' : 'Reading log'
 
   return (
@@ -305,13 +316,13 @@ export function NotionSkin({ doc }: { doc: DocumentRecord }) {
                 <span className="nt-prop-k">
                   <Clock size={15} /> Created
                 </span>
-                <span className="nt-prop-v">{doc.fetchedAt}</span>
+                <span className="nt-prop-v">{notionDate(doc.fetchedAt)}</span>
               </div>
               <div className="nt-prop">
                 <span className="nt-prop-k">
                   <Clock size={15} /> Updated
                 </span>
-                <span className="nt-prop-v">{doc.lastSyncedAt || doc.fetchedAt}</span>
+                <span className="nt-prop-v">{notionDate(doc.lastSyncedAt || doc.fetchedAt)}</span>
               </div>
               <div className="nt-prop">
                 <span className="nt-prop-k">

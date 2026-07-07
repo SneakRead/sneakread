@@ -1,6 +1,7 @@
 import type { DocumentRecord } from '../../core/types'
 import type { SkinDefinition } from '../types'
-import { articleBody, extractOutline } from '../../core/content'
+import { articleBody, clockLabel, extractOutline, minutesAgo } from '../../core/content'
+import { getAlias, aliasInitial } from '../../core/alias'
 import { MarkdownContent, SkinSwitcher } from '../shared'
 import { lang } from '../../i18n'
 import {
@@ -24,7 +25,6 @@ const STR = {
   zh: {
     space: '知识库',
     external: '外部',
-    edited: '最近修改：昨天 14:35',
     share: '分享',
     outline: '目录',
     saved: '已保存',
@@ -35,7 +35,6 @@ const STR = {
   en: {
     space: 'Wiki',
     external: 'External',
-    edited: 'Last edited yesterday 14:35',
     share: 'Share',
     outline: 'Outline',
     saved: 'Saved',
@@ -45,15 +44,42 @@ const STR = {
   },
 }
 
+// "Last edited …" derived from the real clock (a fixed fake time is the tell).
+function editedLabel(zh: boolean) {
+  const stamp = clockLabel(minutesAgo(37))
+  return zh ? `最近修改：今天 ${stamp}` : `Last edited today at ${stamp}`
+}
+
+// Enterprise Feishu tiles the viewer's name across every doc — the single
+// strongest "this is a real corporate doc" signal. Rendered only when the user
+// set a display name (File ▸ Display name…), as a repeating SVG tile.
+function watermarkTile(text: string) {
+  const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="170">` +
+    `<text x="120" y="90" font-family="-apple-system,'PingFang SC','Segoe UI',sans-serif" ` +
+    `font-size="14" fill="rgba(31,35,41,0.05)" text-anchor="middle" ` +
+    `transform="rotate(-20 120 90)">${safe}</text></svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
+}
+
 export function LarkDocsSkin({ doc }: { doc: DocumentRecord }) {
   const body = articleBody(doc)
   const t = lang === 'zh' ? STR.zh : STR.en
   const title = doc.title
   const workspace = doc.projectName || t.space
   const outline = extractOutline(body)
+  const alias = getAlias()
 
   return (
     <div className="lark-docs">
+      {alias && (
+        <div
+          className="ld-watermark"
+          aria-hidden="true"
+          style={{ backgroundImage: watermarkTile(alias) }}
+        />
+      )}
       <header className="ld-topbar">
         <div className="ld-top-left">
           <button type="button" className="ld-ic" aria-label="Menu">
@@ -79,7 +105,7 @@ export function LarkDocsSkin({ doc }: { doc: DocumentRecord }) {
                 <Bookmark size={13} />
                 {t.shortcut}
               </span>
-              <span className="ld-meta-edited">{t.edited}</span>
+              <span className="ld-meta-edited">{editedLabel(lang === 'zh')}</span>
             </div>
           </div>
         </div>
@@ -101,7 +127,7 @@ export function LarkDocsSkin({ doc }: { doc: DocumentRecord }) {
           <button type="button" className="ld-ic" aria-label="New">
             <Plus size={18} />
           </button>
-          <span className="ld-avatar">M</span>
+          <span className="ld-avatar">{aliasInitial()}</span>
         </div>
       </header>
 

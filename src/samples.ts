@@ -4,23 +4,29 @@ export type Sample = { url: string; label: string }
 
 // Localized "摸鱼" (slack-off) sample sites — entertainment / sports / gossip that
 // office workers actually sneak-read, not study material. The first entry is a
-// World Cup link everywhere (the 2026 tournament is live). Each URL was
-// reader-tested (Jina) to confirm it returns readable, link-rich content.
+// World Cup link everywhere (the 2026 tournament is live).
+//
+// Acceptance (last full run: 2026-07-07): every URL must PASS
+// `node scripts/verify-samples.mjs --current`, which mirrors the product's
+// reader pipeline (r.jinaai.cn → r.jina.ai → Firecrawl keyless, product
+// timeouts) and requires: answered within the provider budget, rich content
+// (≥200 words or ≥30 links after markdown stripping), and no QR-code /
+// app-download-promo markers. Only PASS URLs may be listed here.
 const SAMPLES: Record<Lang, Sample[]> = {
   en: [
     { url: 'https://www.bbc.com/sport/football/world-cup', label: '⚽ World Cup · BBC' },
-    { url: 'https://www.skysports.com/football', label: '🏟️ Sky Sports Football' },
-    { url: 'https://www.espn.com/soccer/', label: '🏅 ESPN Soccer' },
+    { url: 'https://www.goal.com/en', label: '🥅 Goal.com' },
+    { url: 'https://bleacherreport.com/', label: '🏀 Bleacher Report' },
     { url: 'https://www.dailymail.co.uk/tvshowbiz/index.html', label: '📺 Daily Mail Showbiz' },
     { url: 'https://people.com/', label: '🌟 People' },
     { url: 'https://www.theonion.com/', label: '😂 The Onion' },
   ],
   zh: [
-    { url: 'https://www.dongqiudi.com/', label: '⚽ 懂球帝 · 世界杯' },
+    { url: 'https://news.zhibo8.com/zuqiu/', label: '⚽ 直播吧 · 世界杯足球' },
     { url: 'https://bbs.hupu.com/', label: '🏀 虎扑 · 步行街' },
-    { url: 'https://www.zhibo8.com/', label: '📺 直播吧' },
-    { url: 'https://sports.sina.com.cn/', label: '🏆 新浪体育' },
-    { url: 'https://ent.sina.com.cn/', label: '🎬 新浪娱乐' },
+    { url: 'https://www.zhibo8.com/', label: '📺 直播吧 · 比分' },
+    { url: 'https://www.ithome.com/', label: '💻 IT之家' },
+    { url: 'https://www.36kr.com/', label: '🚀 36氪' },
     { url: 'https://www.jiemian.com/', label: '📰 界面新闻' },
   ],
   es: [
@@ -34,10 +40,10 @@ const SAMPLES: Record<Lang, Sample[]> = {
   hi: [
     { url: 'https://sports.ndtv.com/fifa-world-cup-2026', label: '⚽ World Cup · NDTV' },
     { url: 'https://www.espncricinfo.com/', label: '🏏 Cricket · ESPNcricinfo' },
-    { url: 'https://www.bollywoodhungama.com/', label: '🎬 Bollywood Hungama' },
-    { url: 'https://www.pinkvilla.com/', label: '💖 Pinkvilla' },
+    { url: 'https://timesofindia.indiatimes.com/etimes', label: '🎬 ETimes Bollywood' },
+    { url: 'https://www.bollywoodlife.com/', label: '💖 Bollywood Life' },
     { url: 'https://timesofindia.indiatimes.com/sports', label: '📰 TOI Sports' },
-    { url: 'https://www.hindustantimes.com/entertainment', label: '🌟 HT Entertainment' },
+    { url: 'https://www.cricbuzz.com/', label: '🏆 Cricbuzz' },
   ],
   ar: [
     { url: 'https://www.kooora.com/', label: '⚽ كووورة · كأس العالم' },
@@ -57,7 +63,7 @@ const SAMPLES: Record<Lang, Sample[]> = {
   ],
   ru: [
     { url: 'https://www.championat.com/football/', label: '⚽ ЧМ-2026 · Championat' },
-    { url: 'https://www.sports.ru/football/', label: '🏟️ Sports.ru' },
+    { url: 'https://news.sportbox.ru/', label: '🏟️ Sportbox' },
     { url: 'https://pikabu.ru/', label: '😂 Пикабу' },
     { url: 'https://lenta.ru/', label: '📰 Лента.ру' },
     { url: 'https://lifehacker.ru/', label: '🎬 Лайфхакер' },
@@ -85,7 +91,7 @@ const SAMPLES: Record<Lang, Sample[]> = {
     { url: 'https://www.gala.de/', label: '✨ GALA' },
     { url: 'https://www.bunte.de/', label: '👑 BUNTE' },
     { url: 'https://www.tz.de/', label: '🏙️ tz München' },
-    { url: 'https://www.chip.de/', label: '🖥️ CHIP' },
+    { url: 'https://www.promiflash.de/', label: '💋 Promiflash' },
   ],
 }
 
