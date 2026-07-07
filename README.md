@@ -2,9 +2,9 @@
 
 **Read the web at your desk, disguised as the tool you already have open.**
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/SneakRead/sneakread?style=flat&logo=github)](https://github.com/SneakRead/sneakread) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) · [sneakread.com](https://sneakread.com) · 100% client-side, no backend, no tracking · [中文](README.zh.md)
+[![GitHub Repo stars](https://img.shields.io/github/stars/SneakRead/sneakread?style=flat&logo=github)](https://github.com/SneakRead/sneakread) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) · [sneakread.com](https://sneakread.com) · 100% client-side, no backend, no account · [中文](README.zh.md)
 
-Paste any public URL. SneakRead reads it through `r.jina.ai`, then renders it **full-screen as a real desktop app** — VS Code, Word, Google Docs, Excel, or Outlook — so reading looks like working. Brand: **SneakRead** globally, **摸鱼** in Chinese.
+Paste any public URL. SneakRead reads it through `r.jina.ai`, then renders it **full-screen as a real desktop app** — VS Code, Claude Code, Word, WPS, Google Docs, Notion, Slack, Lark/Feishu, DingTalk, Teams, Gmail, Excel, or Outlook — so reading looks like working. Brand: **SneakRead** globally, **摸鱼** in Chinese.
 
 The design goal is 以假乱真 (indistinguishable from the real thing), modelled on
 [remoteok.com/vscode](https://remoteok.com/vscode) / `/docx` / `/docs`:
@@ -18,7 +18,9 @@ The design goal is 以假乱真 (indistinguishable from the real thing), modelle
 ## Landing & SEO
 
 The marketing pages are static, prerendered, and localized into 10 languages,
-yet **themselves disguised** as a VS Code README (with a live Version switcher):
+yet **themselves disguised** — the landing IS the reader's Word home (a
+Getting-Started document with a live URL box and the 14-skin dock; every other
+disguise is one click away as a full-screen live preview):
 
 - `/`, `/zh`, `/es`, `/hi`, `/ar`, `/pt`, `/ru`, `/ja`, `/fr`, `/de` — each static HTML with localized `<title>`/description, canonical, `hreflang` (+ `x-default`), Open Graph, and `FAQPage` JSON-LD. `sitemap.xml` + `robots.txt` included.
 - Features and FAQ are real, crawlable text rendered inside the disguise.
@@ -36,14 +38,35 @@ yet **themselves disguised** as a VS Code README (with a live Version switcher):
 
 | Skin | Looks like | Content shape |
 | --- | --- | --- |
-| VS Code | full workbench: activity bar, explorer, syntax-highlighted editor, terminal, dark preview | source markdown |
 | Word | title bar, ribbon, ruler, paper on canvas, status bar | clean article |
+| VS Code | full workbench: activity bar, explorer, **real Monaco editor**, terminal, minimap | source markdown |
+| Claude Code | macOS terminal running the AI coding agent: tool calls, streamed answer, context meter | article as an agent reply |
 | Google Docs | doc top bar, menu, toolbar pill, page | clean article |
+| Notion | sidebar, List-view database, right peek panel with properties | article as a page |
+| Lark Docs / 飞书文档 | breadcrumbs, outline rail, AI summary chip, share button, optional name watermark | clean doc |
+| Slack | aubergine rail, channel list, message stream, composer | article as a thread of messages |
+| Lark / 飞书 | nav sidebar, chat list, group conversation with read receipts | article as group messages |
+| DingTalk / 钉钉 | icon rail, chat list, group chat with 已读 receipts and DING | article as group messages |
+| WPS 文字 | multi-tab strip, Chinese ribbon, A4 paper, member crown | clean article (Chinese chrome) |
 | Excel | ribbon, formula bar, real grid, sheet tabs | data table if present, else audit sheet |
 | Outlook | folders, message list, reading pane | article as an email |
+| Teams | purple rail, channel Posts tab, reply chain | article as a channel post |
+| Gmail | Material top bar, label sidebar, open conversation, smart replies | article as a newsletter |
 
 New pages open as Word by default, and you can switch the disguise anytime from
-the File menu or command palette.
+the File menu, the command palette, or the hover-to-reveal switcher at the top of
+any article. Set **File ▸ Display name** and every disguise wears *your* name —
+avatars, the Notion workspace, and a Feishu-style tiled watermark.
+
+## Privacy, honestly
+
+No backend, no account, no cookies of our own. What you read is fetched by your
+browser and stays in your browser (localStorage). The public site loads
+Microsoft Clarity and Google Analytics for anonymous usage analytics — which
+*product* features are used (skins, boss key, samples), never the articles you
+read, never full URLs (hostnames and bucketed counts only), never anything you
+type. Both load lazily after first paint and only on sneakread.com; block them
+freely, nothing breaks. The self-hosted build sends nothing.
 
 ## Stack
 
@@ -65,11 +88,13 @@ pnpm build      # static site into dist/ (client + prerendered landing pages)
 
 SneakRead is built to be extended — **new disguises are the most welcome kind of
 contribution.** A skin is a [`SkinDefinition`](src/skins/types.ts) (id, label, app
-name, accent) plus a React component that renders a `DocumentRecord` as that app.
-Each of the five built-in disguises lives in its own [`src/skins/<name>/`](src/skins/)
-folder and auto-registers via `import.meta.glob`; copy [`src/skins/_template/`](src/skins/_template/)
-to start. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the interface, the
-add-a-skin walkthrough, and the 以假乱真 fidelity checklist.
+name, accent, its own `Logo`) plus a React component that renders a
+`DocumentRecord` as that app. Each of the fourteen built-in disguises lives in its
+own [`src/skins/<name>/`](src/skins/) folder — component, `style.css`, and logo
+together — and auto-registers via `import.meta.glob`; copy
+[`src/skins/_template/`](src/skins/_template/) to start. See
+**[CONTRIBUTING.md](CONTRIBUTING.md)** for the interface, the add-a-skin
+walkthrough, and the 以假乱真 fidelity checklist.
 
 ## Author
 

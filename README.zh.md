@@ -2,9 +2,9 @@
 
 **在工位上读整个互联网，伪装成你本来就开着的那个软件。**
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/SneakRead/sneakread?style=flat&logo=github)](https://github.com/SneakRead/sneakread) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) · [sneakread.com](https://sneakread.com) · 纯前端、无后端、不追踪 · [English](README.md)
+[![GitHub Repo stars](https://img.shields.io/github/stars/SneakRead/sneakread?style=flat&logo=github)](https://github.com/SneakRead/sneakread) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) · [sneakread.com](https://sneakread.com) · 纯前端、无后端、无账号 · [English](README.md)
 
-粘贴任意公开网址，SneakRead 通过阅读器把它抓成正文，然后**全屏渲染成一个真实的桌面软件** —— VS Code、Word、Google Docs、Excel 或 Outlook —— 让「看网页」看起来像「在工作」。品牌：全球叫 **SneakRead**，中文叫 **摸鱼**。
+粘贴任意公开网址，SneakRead 通过阅读器把它抓成正文，然后**全屏渲染成一个真实的桌面软件** —— VS Code、Claude Code、Word、WPS、Google Docs、Notion、Slack、飞书、钉钉、Teams、Gmail、Excel 或 Outlook —— 让「看网页」看起来像「在工作」。品牌：全球叫 **SneakRead**，中文叫 **摸鱼**。
 
 设计目标是**以假乱真**（和最新版的真软件像素级一致），对标 [remoteok.com/vscode](https://remoteok.com/vscode)：
 
@@ -18,11 +18,32 @@
 
 | 皮肤 | 伪装成 | 内容形态 |
 | --- | --- | --- |
-| VS Code | 完整工作台：活动栏、资源管理器、**真 Monaco 编辑器**、终端、minimap | 源码 markdown |
 | Word | 标题栏、Colorful 功能区、标尺、画布上的纸张、状态栏 | 干净的文章 |
+| VS Code | 完整工作台：活动栏、资源管理器、**真 Monaco 编辑器**、终端、minimap | 源码 markdown |
+| Claude Code | 跑着 AI 编码助手的 macOS 终端：工具调用、流式回答、context 余量 | 文章当成 AI 的回答 |
 | Google Docs | 文档顶栏、菜单、药丸工具栏、页面 | 干净的文章 |
+| Notion | 侧栏、List view 数据库、右侧 peek 面板与属性区 | 文章当成一个页面 |
+| 飞书文档 | 面包屑、目录栏、AI 速览、分享按钮、可选署名水印 | 干净的云文档 |
+| Slack | 深紫侧栏、频道列表、消息流、输入框 | 文章拆成一串消息 |
+| 飞书 | 导航侧栏、会话列表、群聊（带已读回执） | 文章拆成群消息 |
+| 钉钉 | 图标导航、会话列表、群聊（已读 n/23 + DING） | 文章拆成群消息 |
+| WPS 文字 | 多标签页、全中文功能区、A4 纸、会员皇冠 | 干净的文章（中文界面） |
 | Excel | 功能区、公式栏、真实网格、工作表标签 | 有表格就渲染表格，否则渲染审计表 |
 | Outlook | 应用轨、文件夹、邮件列表、阅读窗格 | 文章当成一封邮件 |
+| Teams | 紫色应用轨、频道 Posts、回复链 | 文章当成频道帖子 |
+| Gmail | Material 顶栏、标签侧栏、打开的会话、智能回复 | 文章当成一封 newsletter |
+
+在 **文件 ▸ 伪装署名** 里填上你的名字，所有伪装都会「穿上」它——头像、Notion
+工作区名，以及飞书文档的企业风平铺水印。
+
+## 隐私（说实话版）
+
+无后端、无账号、无自家 Cookie。你读的内容由你的浏览器直接抓取、只存在你的
+浏览器里（localStorage）。官网加载了 Microsoft Clarity 和 Google Analytics
+做匿名使用分析——只看产品功能的使用情况（皮肤、老板键、示例），绝不涉及你读
+的文章：不传完整网址（只有域名和分桶计数）、不传标题、不传你输入的任何内容。
+两者都在首屏渲染完成后才懒加载、只在 sneakread.com 上启用；屏蔽它们不影响任
+何功能。自部署版本不发送任何数据。
 
 ## 技术栈
 

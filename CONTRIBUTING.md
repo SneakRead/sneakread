@@ -8,14 +8,16 @@ like another real app. This guide covers the architecture and how to add one.
 ```
 src/
   core/
-    types.ts        # DocumentRecord, SkinId, the skin registry metadata
-    content.ts      # pure transforms: articleBody, emailBody, extractLinks, …
+    types.ts        # DocumentRecord, SkinId
+    content.ts      # pure transforms: articleBody, emailBody, clockLabel, …
+    alias.ts        # the user's display name, worn by every disguise
   skins/
-    types.ts        # the SkinDefinition interface
+    types.ts        # the SkinDefinition interface (Surface + optional Logo)
     shared/         # chrome shared across skins (title bars, MarkdownContent, …)
-    index.ts        # registry — auto-discovers skins via import.meta.glob
+    index.tsx       # registry — auto-discovers skins via import.meta.glob
     _template/      # copy this to start a new skin (not registered)
-    vscode/ word/ docs/ excel/ outlook/   # the five built-in disguises
+    word/ vscode/ claude-code/ docs/ notion/ lark-docs/
+    slack/ lark/ dingtalk/ wps/ excel/ outlook/ teams/ gmail/
   App.tsx           # the app shell: routing, state, palette, boss-key, home
 ```
 
@@ -30,6 +32,7 @@ A skin never imports the app shell; it imports only `core/*` and `skins/shared/*
    ```tsx
    import type { SkinDefinition } from '../types'
    import { articleBody } from '../../core/content'
+   import './style.css' // your CSS lives IN your folder, prefixed with your id
 
    function Surface({ doc }: { doc: DocumentRecord }) {
      // Render `doc` as your app. Reuse shared chrome where you can.
@@ -42,13 +45,17 @@ A skin never imports the app shell; it imports only `core/*` and `skins/shared/*
      appName: 'My App',
      fileExtension: 'myx',
      accent: '#123456',
+     Logo: MyAppLogo, // inline-SVG brand mark, shipped in your folder
      Surface,
    }
    export default skin
    ```
 
-2. Add your `id` to the `SkinId` union in `src/core/types.ts` and a row to `skins`.
-3. Add CSS (scoped to your skin's class) in `src/App.css`.
+2. Add your `id` to the `SkinId` union in `src/core/types.ts` — that's the only
+   shared file you touch. (Optionally add it to `ORDER` in `src/skins/index.tsx`
+   to control menu position; unknown ids sort to the end automatically.)
+3. Ship your CSS as `src/skins/<your-app>/style.css`, every class prefixed with
+   a short skin token (`.myapp`, `.ma-*`) so nothing leaks across skins.
 
 ## Fidelity checklist (the whole point is 以假乱真)
 
@@ -60,7 +67,21 @@ A skin never imports the app shell; it imports only `core/*` and `skins/shared/*
 - [ ] **Links stay clickable** — the app intercepts `a[href^=http]` so users keep
       browsing disguised. Don't swallow those clicks.
 - [ ] **No global keyboard handlers** that break `Esc` (boss key) or `⌘K`.
-- [ ] **No external network** and **no direct `localStorage`** from a skin.
+- [ ] **No external network** and **no direct `localStorage`** from a skin
+      (use `core/alias.ts` for the display name).
+- [ ] **No hardcoded clock times** — derive timestamps from `new Date()` via
+      `clockLabel`/`minutesAgo`/`daysAgoLabel` in `core/content.ts`, so the
+      disguise never shows a time in the future.
+- [ ] **Invented seed content only** — sidebar/chat filler must be fictional
+      and localized (zh/en at minimum); never real people or real documents.
+- [ ] One element carries `data-appmenu="file"` (the real control menu mount),
+      and `<SkinSwitcher />` sits at the top of the content.
+- [ ] **The menu mount is discoverable at a glance** — put it where the real
+      app's own menu lives ("File", the "…" button, the hamburger), give it
+      a large hit area, and never bury it among a row of look-alike icons.
+      Multiple elements may carry `data-appmenu` (e.g. title bar + status
+      hint). Bottom/right-edge mounts are fine — the menu and coach bubble
+      auto-flip to stay on screen.
 - [ ] Handles empty / very long / RTL markdown without exploding.
 - [ ] `pnpm build` passes; include a screenshot in your PR.
 
